@@ -15,6 +15,7 @@ import (
 type Route struct {
 	Uri       string
 	ForwardTo []string
+	Type      string
 }
 
 // getEnv get key environment variable if exist otherwise return defalutValue
@@ -97,9 +98,23 @@ func main() {
 		fmt.Println()
 
 		forwardTo := currentConfig.ForwardTo
+		channelType := currentConfig.Type
 
 		http.HandleFunc(currentConfig.Uri, func(rw http.ResponseWriter, r *http.Request) {
-			fmt.Println("\nNew request for:", r.URL)
+			fmt.Println("-----NEW REQUEST-----")
+			fmt.Println("URL:", r.URL)
+
+			// Check request for validation
+			switch {
+			// Handle fb messenger validation
+			// /fb-prod?hub.mode=subscribe&hub.challenge=1386454042&hub.verify_token=abc123
+			case channelType == "fb":
+				qs := r.URL.Query()
+				if qs.Get("hub.mode") == "subscribe" {
+					rw.Write([]byte(qs.Get("hub.challenge")))
+					return
+				}
+			}
 
 			rqHeader := r.Header
 
