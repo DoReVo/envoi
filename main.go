@@ -16,6 +16,7 @@ type Route struct {
 	Uri       string
 	ForwardTo []string
 	Type      string
+	Tags      []string
 }
 
 // getEnv get key environment variable if exist otherwise return defalutValue
@@ -91,8 +92,16 @@ func main() {
 		// Print all routes and multiplex destination
 		fmt.Printf("URI is for : %v \n", currentConfig.Uri)
 
+		fmt.Println("To forward to:")
 		for _, forwardTo := range currentConfig.ForwardTo {
-			fmt.Printf("To forward to : %v \n", forwardTo)
+			fmt.Printf("-%v\n", forwardTo)
+		}
+
+		fmt.Println("Type:", currentConfig.Type)
+
+		fmt.Println("Tags for this route:")
+		for _, tag := range currentConfig.Tags {
+			fmt.Printf("-%v\n", tag)
 		}
 
 		fmt.Println()

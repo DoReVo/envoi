@@ -1,13 +1,12 @@
 [
   {
-    "uri": "/telegram",
+    "uri": "/fb-prod",
     "forwardTo": [
-      "https://910c-202-184-162-73.ap.ngrok.io",
-      "https://.ap.ngrok.io",
       "http://localhost:4501",
-      "http://localhost:4502"
-    ]
-  },
-  { "uri": "/r2", "forwardTo": ["https://.ap.ngrok.io"] },
-  { "uri": "/haha", "forwardTo": ["https://.ap.ngrok.io"] }
+      "http://localhost:4501",
+      "http://localhost:4501"
+    ],
+    "type": "fb",
+    "tags": ["io-production", "facebook io personal"]
+  }
 ]
