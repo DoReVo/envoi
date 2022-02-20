@@ -162,6 +162,13 @@ func main() {
 					rw.Write([]byte(verificationCheckBody.Challenge))
 					return
 				}
+			// /wechat-prod?signature=80f6ac0dd2b5013c14be0b0f789b4505653aaafb&echostr=8083170101097314043&timestamp=1645384443&nonce=1469440746
+			case channelType == "wechat":
+				if r.Method == "GET" {
+					qs := r.URL.Query()
+					rw.Write([]byte(qs.Get("echostr")))
+					return
+				}
 			}
 
 			fmt.Println("---Forwarding---")
