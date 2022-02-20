@@ -19,6 +19,12 @@ type Route struct {
 	Tags      []string
 }
 
+type SlackVerification struct {
+	Challenge string
+	Token     string
+	Type      string
+}
+
 // getEnv get key environment variable if exist otherwise return defalutValue
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
@@ -113,18 +119,6 @@ func main() {
 			fmt.Println("-----NEW REQUEST-----")
 			fmt.Println("URL:", r.URL)
 
-			// Check request for validation
-			switch {
-			// Handle fb messenger validation
-			// /fb-prod?hub.mode=subscribe&hub.challenge=1386454042&hub.verify_token=abc123
-			case channelType == "fb":
-				qs := r.URL.Query()
-				if qs.Get("hub.mode") == "subscribe" {
-					rw.Write([]byte(qs.Get("hub.challenge")))
-					return
-				}
-			}
-
 			rqHeader := r.Header
 
 			// Print webhook headers
@@ -148,6 +142,27 @@ func main() {
 			json.Unmarshal(rawBody, &webhookBody)
 
 			dump(webhookBody)
+
+			// Check request for validation
+			switch {
+			// Handle fb messenger validation
+			// /fb-prod?hub.mode=subscribe&hub.challenge=1386454042&hub.verify_token=abc123
+			case channelType == "fb":
+				qs := r.URL.Query()
+				if qs.Get("hub.mode") == "subscribe" {
+					rw.Write([]byte(qs.Get("hub.challenge")))
+					return
+				}
+
+			case channelType == "slack":
+				var verificationCheckBody SlackVerification
+				json.Unmarshal(rawBody, &verificationCheckBody)
+
+				if verificationCheckBody.Type == "url_verification" {
+					rw.Write([]byte(verificationCheckBody.Challenge))
+					return
+				}
+			}
 
 			fmt.Println("---Forwarding---")
 			// Forward request to their destination

@@ -54,7 +54,7 @@ func main() {
 
 		dump(webhookBody)
 
-		rw.Write([]byte("Ok"))
+		rw.Write([]byte("Ok received"))
 	})
 
 	fmt.Println("Listening on port", PORT)
