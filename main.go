@@ -147,7 +147,7 @@ func main() {
 			switch {
 			// Handle fb messenger validation
 			// /fb-prod?hub.mode=subscribe&hub.challenge=1386454042&hub.verify_token=abc123
-			case channelType == "fb":
+			case channelType == "fb", channelType == "instagram":
 				qs := r.URL.Query()
 				if qs.Get("hub.mode") == "subscribe" {
 					rw.Write([]byte(qs.Get("hub.challenge")))
