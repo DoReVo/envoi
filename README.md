@@ -11,7 +11,7 @@ Look at `example.config.json`
 - `tags` are not used, its simply to tell you what is that particular entry about
 
 # Deployment
-1. Run `cargo build`
+1. Run `go build`
 2. Copy systemd unit file `example.envoi.service` to `/etc/systemd/system`
 3. Configure unit file accordingly
 4. Copy `example.config.json` and rename to `config.json`
