@@ -1,0 +1,23 @@
+{
+  "name": "envoi",
+  "version": "1.0.0",
+  "description": "Webhook demultiplexer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoReVo/envoi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DoReVo/envoi/issues"
+  },
+  "homepage": "https://github.com/DoReVo/envoi#readme",
+  "dependencies": {
+    "fastify": "^4.15.0"
+  }
+}
