@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/DoReVo/envoi#readme",
   "workspaces": [
-    "api"
+    "api",
+    "web"
   ]
 }

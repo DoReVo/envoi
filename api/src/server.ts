@@ -3,8 +3,8 @@ import fastify from "fastify";
 import fastifyEnv from "@fastify/env";
 import { EnvSchema } from "./config/Env";
 import routes from "./routes";
-import fastifyStatic from "@fastify/static";
-import path from "path";
+import { DateTime } from "luxon";
+import fastifyCors from "@fastify/cors";
 
 const app = fastify({ logger: true, disableRequestLogging: true });
 
@@ -17,15 +17,17 @@ async function registerPlugins() {
     confKey: "env",
   });
 
-  await app.register(fastifyStatic, {
-    root: path.join(__dirname, "public"),
+  /* CORS plugin */
+  await app.register(fastifyCors, {
+    origin: "*",
   });
+
   /* Register the routes for our app */
   await app.register(routes, { prefix: "api" });
 }
 
-app.get("/", async (req, res) => {
-  return res.sendFile("index.html");
+app.get("/", async () => {
+  return { message: `Envoi API ${DateTime.now().toISO()}` };
 });
 
 // Run the server!
