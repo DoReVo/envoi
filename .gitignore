@@ -3,3 +3,5 @@ config.json
 envoi
 node_modules
 dist
+
+.env
