@@ -2,3 +2,4 @@ tmp
 config.json
 envoi
 node_modules
+dist
