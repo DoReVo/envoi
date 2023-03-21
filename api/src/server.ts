@@ -24,6 +24,7 @@ await app.register(fastifyCors, {
 await app.register(fastifyRedis, {
   host: app.env.REDIS_HOST,
   port: app.env.REDIS_PORT,
+  keyPrefix: "envoi:",
 });
 
 /* Register the routes for our app */

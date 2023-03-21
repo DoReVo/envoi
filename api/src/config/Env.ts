@@ -1,13 +1,11 @@
 import { JSONSchemaType } from "ajv";
 
-export interface Env {
+export const EnvSchema: JSONSchemaType<{
   PORT?: number;
   API_TOKEN: string;
   REDIS_HOST: string;
   REDIS_PORT: number;
-}
-
-export const EnvSchema: JSONSchemaType<Env> = {
+}> = {
   type: "object",
   required: ["API_TOKEN"],
   properties: {
