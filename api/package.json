@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "Envoi backend API",
   "main": "server.js",
+  "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "rm -rf dist && tsc -p tsconfig.json",
+    "generateToken": "ts-node src/cli/generateAPIToken.ts",
     "dev": "nodemon"
   },
   "repository": {

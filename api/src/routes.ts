@@ -1,6 +1,5 @@
 import { JSONSchemaType } from "ajv";
 import { FastifyPluginCallback } from "fastify";
-import { authHook } from "./hooks";
 
 const AUTH_HEADER_SCHEMA: JSONSchemaType<{ authorization: string }> = {
   type: "object",
@@ -12,27 +11,27 @@ const AUTH_HEADER_SCHEMA: JSONSchemaType<{ authorization: string }> = {
   },
 };
 
-const routes: FastifyPluginCallback = async (app, opts) => {
+const routes: FastifyPluginCallback = async (app, _opts) => {
   app.post(
-    "/add-route",
+    "/route",
     {
       schema: {
         headers: AUTH_HEADER_SCHEMA,
       },
     },
-    async (req, res) => {
-      return { HEHE: app.env.PORT, LOL: __dirname };
+    async (_req, _res) => {
+      return { HEHE: app.env.PORT, LOL: import.meta.url };
     }
   );
 
   app.get(
-    "/routes",
+    "/route",
     {
       schema: {
         headers: AUTH_HEADER_SCHEMA,
       },
     },
-    async (req, res) => {
+    async (_req, _res) => {
       return { hehe: "boi" };
     }
   );

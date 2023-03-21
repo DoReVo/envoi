@@ -3,6 +3,8 @@ import { JSONSchemaType } from "ajv";
 export interface Env {
   PORT?: number;
   API_TOKEN: string;
+  REDIS_HOST: string;
+  REDIS_PORT: number;
 }
 
 export const EnvSchema: JSONSchemaType<Env> = {
@@ -16,6 +18,12 @@ export const EnvSchema: JSONSchemaType<Env> = {
     },
     API_TOKEN: {
       type: "string",
+    },
+    REDIS_HOST: {
+      type: "string",
+    },
+    REDIS_PORT: {
+      type: "number",
     },
   },
   additionalProperties: true,
