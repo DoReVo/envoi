@@ -20,6 +20,9 @@ import {
   TagLabel,
   TagCloseButton,
   Tooltip,
+  Divider,
+  IconButton,
+  Code,
 } from "@chakra-ui/react";
 import Joi from "joi";
 import { useAtom } from "jotai";
@@ -37,10 +40,13 @@ import {
 } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { isOpenUrlFormAtom, tokenAtom } from "./atoms";
-import { AddIcon, InfoIcon } from "@chakra-ui/icons";
+import { AddIcon, ArrowDownIcon, InfoIcon } from "@chakra-ui/icons";
 import { DevTool } from "@hookform/devtools";
 import { faker } from "@faker-js/faker";
 import { isEmpty, isString } from "lodash";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { createRoute, getAllRoutes } from "./api/url";
+import { HTTPError } from "ky";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
@@ -236,6 +242,8 @@ function URLForm() {
 function UrlFormModal() {
   const [isOpenUrlForm, setIsOpenUrlFormModal] = useAtom(isOpenUrlFormAtom);
 
+  const toast = useToast();
+
   const useFormReturn = useForm<Form.Url.Data>({
     resolver: joiResolver(URL_FORM_SCHEMA, { abortEarly: false }),
     defaultValues: {
@@ -250,8 +258,36 @@ function UrlFormModal() {
     setIsOpenUrlFormModal(false);
   };
 
+  const createRouteMUT = useMutation(createRoute, {
+    onSuccess: () => {
+      onClose();
+      toast({ title: "Webhook created", status: "success", position: "top" });
+    },
+    onError: async (res) => {
+      if (res instanceof HTTPError) {
+        try {
+          const err = await res?.response?.json();
+          if (err?.error?.message)
+            toast({
+              title: err?.error?.message,
+              status: "error",
+              position: "top",
+            });
+          else throw new Error("Unkown error");
+        } catch (error) {
+          toast({
+            title: "Unexpected Error",
+            status: "error",
+            position: "top",
+          });
+        }
+      }
+    },
+  });
+
   function onSubmitHandler(data: Form.Url.Data) {
     console.log("Submitted", data);
+    createRouteMUT.mutate(data);
   }
 
   const onSaveClick = () => {
@@ -288,6 +324,69 @@ function UrlFormModal() {
   );
 }
 
+function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
+  const { route } = props;
+
+  const [expanded, setExpanded] = useState(false);
+
+  const onClickExpandBtn = () => {
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div className="p-2">
+      <div className="flex justify-between items-center">
+        <div className="text-lg rounded bg-blue-500 px-2 text-white">
+          {route.url}
+        </div>
+        <IconButton
+          aria-label="Expand"
+          icon={<ArrowDownIcon />}
+          colorScheme={"blackAlpha"}
+          rounded="full"
+          onClick={onClickExpandBtn}
+          size="sm"
+        />
+      </div>
+
+      {expanded ? (
+        <div className="mt-4">
+          <div className="font-bold">Forward Targets</div>
+          <div className="flex flex-col gap-y-2">
+            {route.targets.map((entry) => (
+              <div className="rounded bg-teal-500 px-2 text-white w-max">
+                {entry.value}
+              </div>
+            ))}
+          </div>
+
+          <div className="font-bold mt-4">Events</div>
+          <Code className="whitespace-pre" bg={"gray.100"}>
+            {JSON.stringify(route, null, 1)}
+          </Code>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function WebhookRoutes() {
+  const { data, isLoading } = useQuery(["all-routes"], getAllRoutes);
+
+  return (
+    <div className="mt-8 max-w-4xl mx-auto">
+      <h1 className="text-left text-xl font-bold">Webhook Routes</h1>
+      <Divider />
+
+      <div className="flex flex-col gap-y-2 divide-y divide-slate-400">
+        {data?.map?.((entry) => (
+          <RouteCard key={`${entry.url}-${entry.created}`} route={entry} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function App() {
   const [isOpenUrlForm, setIsOpenUrlFormModal] = useAtom(isOpenUrlFormAtom);
 
@@ -308,15 +407,21 @@ function App() {
       <h1 className="text-center text-3xl font-bold">
         Envoi Webhook Demultiplexer
       </h1>
-      <div className="max-w-lg mx-auto flex gap-x-4 mt-8">
-        <div className="flex justify-center items-center font-bold">Token</div>
-        <Input value={token} onChange={onChangeTokenInput} />
+      <div className="max-w-lg mx-auto">
+        <div className=" flex gap-x-4 mt-8">
+          <div className="flex justify-center items-center font-bold">
+            Token
+          </div>
+          <Input value={token} onChange={onChangeTokenInput} />
+        </div>
+        <div className=" flex mt-4">
+          <Button colorScheme="blue" onClick={onClickAddUrl}>
+            Add URL
+          </Button>
+        </div>
       </div>
-      <div className="max-w-lg mx-auto flex mt-4">
-        <Button colorScheme="blue" onClick={onClickAddUrl}>
-          Add URL
-        </Button>
-      </div>
+
+      <WebhookRoutes />
 
       <UrlFormModal />
     </div>

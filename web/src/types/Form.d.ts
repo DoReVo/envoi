@@ -9,5 +9,11 @@ declare namespace Form {
     interface Target {
       value: string;
     }
+
+    declare module APIResponse {
+      interface Data extends Url.Data {
+        created: string;
+      }
+    }
   }
 }
