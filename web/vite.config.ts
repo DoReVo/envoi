@@ -6,7 +6,7 @@ const configFactory: UserConfigFn = ({ mode }) => {
 
   return {
     server: {
-      port: parseInt(env.DEV_SERVER_PORT) || 4000,
+      port: parseInt(env.DEV_SERVER_PORT) || 4100,
     },
     plugins: [react()],
   };
