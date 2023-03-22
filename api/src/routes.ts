@@ -1,5 +1,6 @@
 import { JSONSchemaType } from "ajv";
 import { FastifyPluginCallback } from "fastify";
+import { DateTime } from "luxon";
 import {
   DeleteRouteBody,
   DELETE_ROUTE_SCHEMA,
@@ -32,14 +33,23 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       // remove envoi
       data = data.map((key) => key.slice(6));
 
-      const proms = await Promise.all(data.map((key) => redis.smembers(key)));
-      // remove url:
-      data = data.map((key) => key.slice(4));
+      const proms = await Promise.all(data.map((key) => redis.hgetall(key)));
 
-      let res: PostRouteBody[] = [];
-      data.forEach((key, index) => {
-        res.push({ url: key, target: proms[index] ?? [] });
-      });
+      const sortDateTimes = (a: any, b: any) =>
+        DateTime.fromISO(a.created) < DateTime.fromISO(b.created)
+          ? -1
+          : DateTime.fromISO(a.created) > DateTime.fromISO(b.created)
+          ? 1
+          : 0;
+
+      let res: PostRouteBody[] = proms.map((entry) => ({
+        url: entry?.url!,
+        targets: JSON.parse(entry?.targets!),
+        tags: JSON.parse(entry?.tags ?? "[]"),
+        created: entry?.created,
+      }));
+
+      res = res.sort(sortDateTimes);
 
       return res;
     }
@@ -54,9 +64,14 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     },
     async (req) => {
       const { redis } = app;
-      const { target, url } = req.body;
+      const { targets, url, tags } = req.body;
 
-      await redis.sadd(`url:${url}`, target);
+      await redis.hset(`url:${url}`, {
+        url,
+        targets: JSON.stringify(targets),
+        tags: JSON.stringify(tags ?? []),
+        created: DateTime.now().toISO(),
+      });
 
       return { message: "ok" };
     }
@@ -72,11 +87,15 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     },
     async (req) => {
       const { redis } = app;
-      const { target, url } = req.body;
+      const { targets, url, tags } = req.body;
 
       const key = `url:${url}`;
       await redis.del(key);
-      await redis.sadd(key, target);
+      await redis.hset(key, {
+        url,
+        targets: JSON.stringify(targets),
+        tags: JSON.stringify(tags ?? []),
+      });
 
       return { message: "ok" };
     }
