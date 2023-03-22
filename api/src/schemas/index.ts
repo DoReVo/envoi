@@ -2,9 +2,11 @@ import { JSONSchemaType } from "ajv";
 
 export interface PostRouteBody {
   url: string;
-  targets: string[];
+  targets: Targets[];
   tags?: string[];
 }
+
+type Targets = { value: string };
 
 export const POST_ROUTE_SCHEMA: JSONSchemaType<PostRouteBody> = {
   type: "object",
@@ -16,8 +18,14 @@ export const POST_ROUTE_SCHEMA: JSONSchemaType<PostRouteBody> = {
     targets: {
       type: "array",
       items: {
-        type: "string",
-        format: "uri",
+        type: "object",
+        required: ["value"],
+        properties: {
+          value: {
+            type: "string",
+            format: "uri",
+          },
+        },
       },
     },
     tags: {
