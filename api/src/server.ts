@@ -6,7 +6,13 @@ import { DateTime } from "luxon";
 import fastifyCors from "@fastify/cors";
 import fastifyRedis from "@fastify/redis";
 
-const app = fastify({ logger: true, disableRequestLogging: true });
+const app = fastify({
+  logger: {
+    enabled: true,
+    level: "debug",
+  },
+  disableRequestLogging: true,
+});
 
 /* Environment variable plugin */
 await app.register(fastifyEnv, {
