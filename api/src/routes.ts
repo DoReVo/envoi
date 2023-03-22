@@ -95,6 +95,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
         url,
         targets: JSON.stringify(targets),
         tags: JSON.stringify(tags ?? []),
+        created: DateTime.now().toISO(),
       });
 
       return { message: "ok" };
@@ -124,7 +125,9 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     const token = req?.headers?.authorization;
 
     if (token !== app.env.API_TOKEN)
-      return res.code(401).send({ error: { message: "Not authorized" } });
+      return res
+        .code(401)
+        .send({ error: { message: "You are not authorized" } });
   });
 };
 
