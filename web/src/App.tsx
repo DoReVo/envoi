@@ -40,13 +40,19 @@ import {
 } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { isOpenUrlFormAtom, tokenAtom } from "./atoms";
-import { AddIcon, ArrowDownIcon, InfoIcon } from "@chakra-ui/icons";
+import {
+  AddIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
+  InfoIcon,
+} from "@chakra-ui/icons";
 import { DevTool } from "@hookform/devtools";
 import { faker } from "@faker-js/faker";
 import { isEmpty, isString } from "lodash";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createRoute, getAllRoutes } from "./api/url";
 import { HTTPError } from "ky";
+import { DateTime } from "luxon";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
@@ -324,6 +330,50 @@ function UrlFormModal() {
   );
 }
 
+function WebhookEventCard() {
+  const [expanded, setExpanded] = useState(false);
+
+  const onCardClick = () => {
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div className="bg-slate-100 p-2">
+      <div className="flex justify-between items-center gap-x-2">
+        <div className="bg-green-400 px-2 py-1 text-center w-max rounded text-sm text-white">
+          POST
+        </div>
+
+        <div className="grow">#As2sz</div>
+
+        <div>{DateTime.now().toISO()}</div>
+
+        <IconButton
+          aria-label="Expand"
+          icon={expanded ? <ArrowUpIcon /> : <ArrowDownIcon />}
+          colorScheme="green"
+          rounded="full"
+          onClick={onCardClick}
+          size="sm"
+        />
+      </div>
+
+      {expanded ? (
+        <>
+          <div className="font-bold mt-4 mb-2">Request Body</div>
+          <Code className="whitespace-pre" bg={"gray.100"}>
+            {JSON.stringify({ hello: "world" }, null, 1)}
+          </Code>
+          <div className="font-bold mt-4 mb-2">Request Headers</div>
+          <Code className="whitespace-pre" bg={"gray.100"}>
+            {JSON.stringify({ authorization: "TOKEN STRING LONG" }, null, 1)}
+          </Code>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
   const { route } = props;
 
@@ -341,8 +391,8 @@ function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
         </div>
         <IconButton
           aria-label="Expand"
-          icon={<ArrowDownIcon />}
-          colorScheme={"blackAlpha"}
+          icon={expanded ? <ArrowUpIcon /> : <ArrowDownIcon />}
+          colorScheme="blue"
           rounded="full"
           onClick={onClickExpandBtn}
           size="sm"
@@ -361,9 +411,7 @@ function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
           </div>
 
           <div className="font-bold mt-4">Events</div>
-          <Code className="whitespace-pre" bg={"gray.100"}>
-            {JSON.stringify(route, null, 1)}
-          </Code>
+          <WebhookEventCard />
         </div>
       ) : null}
     </div>
