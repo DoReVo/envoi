@@ -2,7 +2,7 @@
   "name": "envoi",
   "version": "1.0.0",
   "description": "- Accept HTTP request (dynamic url) - Forward that HTTP request to 1 or more destinations - Everything is configurable",
-  "main": "index.js",  
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,5 +20,8 @@
   "workspaces": [
     "api",
     "web"
-  ]
+  ],
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
 }
