@@ -5,13 +5,18 @@ import routes from "./routes.js";
 import { DateTime } from "luxon";
 import fastifyCors from "@fastify/cors";
 import fastifyRedis from "@fastify/redis";
+import customRoutes from "./customRoutes.js";
+import { nanoid } from "nanoid";
+import websocketPlugin from "@fastify/websocket";
+import sockets from "./socket.js";
 
 const app = fastify({
   logger: {
     enabled: true,
     level: "debug",
   },
-  disableRequestLogging: true,
+  disableRequestLogging: false,
+  genReqId: () => nanoid(),
 });
 
 /* Environment variable plugin */
@@ -33,8 +38,14 @@ await app.register(fastifyRedis, {
   keyPrefix: "envoi:",
 });
 
+await app.register(websocketPlugin);
+
+/* Register custom routes added by users */
+await app.register(customRoutes, { prefix: "webhook" });
+
 /* Register the routes for our app */
 await app.register(routes, { prefix: "api" });
+await app.register(sockets, { prefix: "socket" });
 
 /* Register plugins */
 

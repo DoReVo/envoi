@@ -8,6 +8,16 @@ export interface PostRouteBody {
 
 type Targets = { value: string };
 
+export const AUTH_HEADER_SCHEMA: JSONSchemaType<{ authorization: string }> = {
+  type: "object",
+  required: ["authorization"],
+  properties: {
+    authorization: {
+      type: "string",
+    },
+  },
+};
+
 export const POST_ROUTE_SCHEMA: JSONSchemaType<PostRouteBody> = {
   type: "object",
   required: ["targets", "url"],

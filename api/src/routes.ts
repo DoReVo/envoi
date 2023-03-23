@@ -1,22 +1,12 @@
-import { JSONSchemaType } from "ajv";
 import { FastifyPluginCallback } from "fastify";
 import { DateTime } from "luxon";
 import {
+  AUTH_HEADER_SCHEMA,
   DeleteRouteBody,
   DELETE_ROUTE_SCHEMA,
   PostRouteBody,
   POST_ROUTE_SCHEMA,
 } from "./schemas/index.js";
-
-const AUTH_HEADER_SCHEMA: JSONSchemaType<{ authorization: string }> = {
-  type: "object",
-  required: ["authorization"],
-  properties: {
-    authorization: {
-      type: "string",
-    },
-  },
-};
 
 const routes: FastifyPluginCallback = async (app, _opts) => {
   app.get(
@@ -119,6 +109,14 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       return { message: "ok" };
     }
   );
+
+  app.get("/test", async (req) => {
+    return await req.server.redis.xrange(
+      "stream:url:sequi-ipsum-voluptatum",
+      "-",
+      "+"
+    );
+  });
 
   /* Really basic auth */
   app.addHook("preHandler", async (req, res) => {
