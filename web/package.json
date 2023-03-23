@@ -23,7 +23,8 @@
     "luxon": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.43.7"
+    "react-hook-form": "^7.43.7",
+    "react-use-websocket": "^3.0.0"
   },
   "devDependencies": {
     "@hookform/devtools": "^4.3.1",
