@@ -25,6 +25,8 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
   try {
     // Insert into redis stream
     const entry = await redis.xadd(key, "*", "data", JSON.stringify(data));
+    // Expired after 7 days
+    await redis.expireat(key, DateTime.now().plus({ day: 7 }).toUnixInteger());
 
     // Notify connected clients
     req.server.websocketServer.clients.forEach((c) => {
