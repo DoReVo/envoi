@@ -1,17 +1,23 @@
 import { RouteHandlerMethod } from "fastify";
+import { isEmpty } from "lodash-es";
 import { DateTime } from "luxon";
 
-export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
-  let path = req.routerPath.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
-    ?.path;
+export const WebhookPreHandler: RouteHandlerMethod = async (req, res) => {
+  let path = req.url.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups?.path;
 
   if (!path) throw new Error("No path match");
-
-  const key = `stream:url:${path}`;
 
   const {
     server: { redis },
   } = req;
+
+  // Find path in redis
+  const pathInDb = await redis.hgetall(`url:${path}`);
+
+  if (isEmpty(pathInDb))
+    return res.status(404).send({ error: { message: "Route not found" } });
+
+  const key = `stream:url:${path}`;
 
   const headers = req?.headers ?? {};
   const body = req?.body ?? {};
@@ -46,7 +52,7 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
 
 export const WebhookHandler: RouteHandlerMethod = async (req, _res) => {
   // Strip /webhook
-  let path = req.routerPath.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
+  let path = req.url.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
     ?.path;
 
   if (!path) throw new Error("No path match");
