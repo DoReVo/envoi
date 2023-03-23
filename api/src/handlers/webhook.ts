@@ -3,7 +3,10 @@ import { isEmpty } from "lodash-es";
 import { DateTime } from "luxon";
 
 export const WebhookPreHandler: RouteHandlerMethod = async (req, res) => {
-  let path = req.url.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups?.path;
+  const url = new URL(`${req?.server?.env?.DOMAIN}${req?.url}`);
+
+  let path = url.pathname.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
+    ?.path;
 
   if (!path) throw new Error("No path match");
 
@@ -51,9 +54,9 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, res) => {
 };
 
 export const WebhookHandler: RouteHandlerMethod = async (req, _res) => {
+  const url = new URL(`${req?.server?.env?.DOMAIN}${req?.url}`);
   // Strip /webhook
-  let path = req.url.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
-    ?.path;
+  let path = url.pathname.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups?.path;
 
   if (!path) throw new Error("No path match");
 
