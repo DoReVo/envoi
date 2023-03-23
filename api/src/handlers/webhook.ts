@@ -2,7 +2,6 @@ import { RouteHandlerMethod } from "fastify";
 import { DateTime } from "luxon";
 
 export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
-  // Insert to redis stream
   let path = req.routerPath.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
     ?.path;
 
@@ -17,17 +16,21 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
   const headers = req?.headers ?? {};
   const body = req?.body ?? {};
   const queryString = req?.query ?? {};
+  const method = req.method;
+  const reqId = req.id;
+  const timestamp = DateTime.now().toMillis();
 
-  const data = { headers, body, queryString };
+  const data = { reqId, timestamp, method, headers, body, queryString };
 
   try {
-    await redis.xadd(key, "*", "data", JSON.stringify(data));
+    // Insert into redis stream
+    const entry = await redis.xadd(key, "*", "data", JSON.stringify(data));
 
     // Notify connected clients
     req.server.websocketServer.clients.forEach((c) => {
       const event = {
         type: "new-request",
-        timestamp: DateTime.now().toMillis(),
+        streamId: entry,
         path,
         data,
       };
@@ -35,6 +38,7 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, _res) => {
     });
   } catch (error) {
     // noop
+    req.log.error(error);
   }
 };
 

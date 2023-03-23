@@ -110,6 +110,52 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     }
   );
 
+  // Get all events for the given path
+  app.get<{ Querystring: { path: PostRouteBody["url"] } }>(
+    "/route/events",
+    {
+      schema: {
+        querystring: {
+          type: "object",
+          required: ["path"],
+          properties: {
+            path: {
+              type: "string",
+            },
+          },
+        },
+      },
+    },
+    async (req) => {
+      const { path } = req?.query;
+
+      const {
+        server: { redis },
+      } = req;
+
+      const key = `stream:url:${path}`;
+
+      let data = await redis.xrange(key, "-", "+");
+
+      data = data.reverse();
+
+      data = data.map((entry) => {
+        // First element is the streamId,
+        // second is our data
+        const id = entry[0];
+        // First element is the key,
+        // Second is the data
+        let rawData = entry[1];
+
+        rawData = JSON.parse(rawData[1] as any);
+
+        return { streamId: id, data: rawData };
+      }) as any;
+
+      return data;
+    }
+  );
+
   app.get("/test", async (req) => {
     return await req.server.redis.xrange(
       "stream:url:sequi-ipsum-voluptatum",
