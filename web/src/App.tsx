@@ -255,6 +255,8 @@ function UrlFormModal() {
 
   const toast = useToast();
 
+  const qClient = useQueryClient();
+
   const useFormReturn = useForm<Form.Url.Data>({
     resolver: joiResolver(URL_FORM_SCHEMA, { abortEarly: false }),
     defaultValues: {
@@ -271,6 +273,7 @@ function UrlFormModal() {
 
   const createRouteMUT = useMutation(createRoute, {
     onSuccess: () => {
+      qClient.invalidateQueries(["all-routes"]);
       onClose();
       toast({ title: "Webhook created", status: "success", position: "top" });
     },
