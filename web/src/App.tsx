@@ -53,7 +53,7 @@ import { isEmpty, isString } from "lodash";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createRoute, getAllRoutes } from "./api/url";
 import { HTTPError } from "ky";
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
 import { getEvents } from "./api/events";
@@ -485,6 +485,14 @@ function App() {
           qClient.setQueryData(key, (oldData: any) => {
             console.log("Updating...", oldData);
             return [eventData, ...oldData];
+          });
+
+          toast({
+            id: eventData?.streamId,
+            title: "New webhook event",
+            description: `Path: ${eventData?.path}`,
+            position: "bottom-left",
+            duration: 1000,
           });
         }
       },
