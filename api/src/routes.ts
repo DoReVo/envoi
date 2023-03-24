@@ -1,6 +1,5 @@
 import { FastifyPluginCallback } from "fastify";
 import { DateTime } from "luxon";
-import { WebhookHandler, WebhookPreHandler } from "./handlers/webhook.js";
 import {
   AUTH_HEADER_SCHEMA,
   DeleteRouteBody,

@@ -25,7 +25,7 @@ const queue = fastifyPlugin(
       },
     });
 
-    const worker = new Worker(
+    new Worker(
       FORWARD_WEBHOOK_JOB_NAME,
       async (data: Job<{ target: { value: string }; data: WebhookData }>) => {
         const { data: jobData } = data;
