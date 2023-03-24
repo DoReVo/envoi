@@ -2,6 +2,7 @@ import { RouteHandlerMethod } from "fastify";
 import { isEmpty } from "lodash-es";
 import { DateTime } from "luxon";
 import { FORWARD_WEBHOOK_JOB_NAME } from "../queue/index.js";
+import { WebhookEntry } from "../types/index.js";
 
 export interface WebhookData {
   reqId: string;
@@ -67,7 +68,7 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, res) => {
   };
 
   // For each target url, add a job
-  for (const target of pathInDb?.targets!) {
+  for (const target of pathInDb?.targets as unknown as WebhookEntry.Data["targets"]) {
     req.log.info({ target: target?.value! }, "Adding job");
     await req.server.queue.forwardWebhookQ.add(FORWARD_WEBHOOK_JOB_NAME, {
       target,
