@@ -43,7 +43,6 @@ const queue = fastifyPlugin(
           await got(webhookTarget, {
             allowGetBody: true,
             method: jobData?.data?.method as any,
-            headers: jobData?.data?.headers,
             json: jobData?.data?.body,
             searchParams: jobData?.data?.queryString,
             retry: {
