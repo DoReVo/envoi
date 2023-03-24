@@ -41,7 +41,7 @@ const envToLogger = {
 
 const environment: keyof EnvOptions =
   (process.env.NODE_ENV as keyof EnvOptions) ??
-  ("development" as keyof EnvOptions);
+  ("production" as keyof EnvOptions);
 
 const app = fastify({
   logger: (envToLogger?.[environment] as FastifyLoggerOptions) ?? true,
