@@ -1,4 +1,4 @@
-import fastify from "fastify";
+import fastify, { FastifyLoggerOptions } from "fastify";
 import fastifyEnv from "@fastify/env";
 import { EnvSchema } from "./config/Env.js";
 import routes from "./routes.js";
@@ -10,11 +10,40 @@ import { nanoid } from "nanoid";
 import websocketPlugin from "@fastify/websocket";
 import sockets from "./socket.js";
 
-const app = fastify({
-  logger: {
-    enabled: true,
-    level: "debug",
+interface EnvOptions {
+  development: {
+    transport: {
+      target: "string";
+      options: {
+        translateTime: string;
+        ignore: string;
+      };
+    };
+  };
+  production: boolean;
+  test: boolean;
+}
+
+const envToLogger = {
+  development: {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        translateTime: "HH:MM:ss Z",
+        ignore: "pid,hostname",
+      },
+    },
   },
+  production: true,
+  test: false,
+};
+
+const environment: keyof EnvOptions =
+  (process.env.NODE_ENV as keyof EnvOptions) ??
+  ("development" as keyof EnvOptions);
+
+const app = fastify({
+  logger: (envToLogger?.[environment] as FastifyLoggerOptions) ?? true,
   disableRequestLogging: false,
   genReqId: () => nanoid(),
 });

@@ -8,13 +8,16 @@ const sockets: FastifyPluginCallback = async (app, _opts) => {
       const id = nanoid();
       const socket = connection.socket as unknown as WebSocket;
 
-      req.log.info("New socket connection | ID: %s", id);
+      req.log.info({ clientId: id }, "New socket client connection");
 
       const meta = { id, token: req?.headers?.authorization };
       socket.META_DATA = meta;
 
       connection.socket.on("message", (data) => {
-        req.log.info("Received socket message | ID: %s | Data: %s", id, data);
+        req.log.info(
+          { clientId: id, message: data.toString("utf8") },
+          "New socket message"
+        );
       });
 
       connection.socket.send(JSON.stringify({ message: `Your ID is ${id}` }));
