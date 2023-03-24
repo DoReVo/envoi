@@ -1,0 +1,55 @@
+{
+  "name": "web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@chakra-ui/icons": "^2.0.17",
+    "@chakra-ui/react": "^2.5.2",
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@faker-js/faker": "^7.6.0",
+    "@hookform/resolvers": "^3.0.0",
+    "@tanstack/react-query": "^4.28.0",
+    "@tanstack/react-query-devtools": "^4.28.0",
+    "framer-motion": "^10.8.4",
+    "joi": "^17.9.1",
+    "jotai": "^2.0.3",
+    "ky": "^0.33.3",
+    "luxon": "^3.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-hook-form": "^7.43.7",
+    "react-use-websocket": "^3.0.0"
+  },
+  "devDependencies": {
+    "@hookform/devtools": "^4.3.1",
+    "@types/luxon": "^3.2.0",
+    "@types/react": "^18.0.28",
+    "@types/react-dom": "^18.0.11",
+    "@vitejs/plugin-react": "^3.1.0",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.21",
+    "tailwindcss": "^3.2.7",
+    "typescript": "^4.9.3",
+    "vite": "^4.2.0"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoReVo/envoi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DoReVo/envoi/issues"
+  },
+  "homepage": "https://github.com/DoReVo/envoi#readme",
+  "description": "Frontend for envoi"
+}
