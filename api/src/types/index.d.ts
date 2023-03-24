@@ -1,3 +1,4 @@
+import { Queue } from "bullmq";
 import { FastifyInstance } from "fastify";
 import * as ws from "ws";
 
@@ -6,6 +7,9 @@ import { Env } from "../config/Env";
 declare module "fastify" {
   interface FastifyInstance {
     env: Env;
+    queue: {
+      forwardWebhookQ: Queue;
+    };
   }
 }
 

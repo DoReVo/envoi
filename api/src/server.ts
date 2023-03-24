@@ -9,6 +9,7 @@ import customRoutes from "./customRoutes.js";
 import { nanoid } from "nanoid";
 import websocketPlugin from "@fastify/websocket";
 import sockets from "./socket.js";
+import queue from "./queue/index.js";
 
 interface EnvOptions {
   development: {
@@ -66,6 +67,8 @@ await app.register(fastifyRedis, {
   port: app.env.REDIS_PORT,
   keyPrefix: "envoi:",
 });
+
+await app.register(queue);
 
 await app.register(websocketPlugin);
 

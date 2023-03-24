@@ -134,7 +134,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
         server: { redis },
       } = req;
 
-      const key = `stream:url:${path}`;
+      const key = `event_stream:url:${path}`;
 
       let data = await redis.xrange(key, "-", "+");
 
@@ -158,11 +158,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
   );
 
   app.get("/test", async (req) => {
-    return await req.server.redis.xrange(
-      "stream:url:sequi-ipsum-voluptatum",
-      "-",
-      "+"
-    );
+    return await req.server.queue.forwardWebhookQ.getMetrics("completed");
   });
 
   /* Really basic auth */
