@@ -78,7 +78,24 @@ await app.register(customRoutes, { prefix: "webhook" });
 await app.register(routes, { prefix: "api" });
 await app.register(sockets, { prefix: "socket" });
 
-/* Register plugins */
+/* Graceful shutdown stuff */
+/* ---------------------------------------------------------- */
+const signals = {
+  SIGHUP: 1,
+  SIGINT: 2,
+  SIGTERM: 15,
+};
+
+// Create a listener for each of the signals that we want to handle
+Object.keys(signals).forEach((signal) => {
+  process.on(signal, () => {
+    app.close(() => {
+      process.exit(0);
+    });
+  });
+});
+
+/* ---------------------------------------------------------- */
 
 app.get("/", async () => {
   return { message: `Envoi API ${DateTime.now().toISO()}` };
