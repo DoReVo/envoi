@@ -1,6 +1,6 @@
 import { Job, Queue, Worker } from "bullmq";
 import fastifyPlugin from "fastify-plugin";
-import got from "got";
+import got, { HTTPError } from "got";
 import { WebhookData } from "../handlers/webhook";
 
 export const FORWARD_WEBHOOK_QUEUE_NAME = "envoi_app:forward_webhook";
@@ -51,7 +51,16 @@ const queue = fastifyPlugin(
             },
           });
         } catch (error) {
-          app.log.error(error, "Error during forwarding");
+          if (error instanceof HTTPError) {
+            app.log.error(
+              {
+                statusCode: error?.response?.statusCode,
+                responseBody: error?.response?.body,
+                responseHeaders: error?.response?.headers,
+              },
+              "HTTP Request Error during forwarding"
+            );
+          } else app.log.error(error, "Unexpected error during forwarding");
           throw error;
         }
 
