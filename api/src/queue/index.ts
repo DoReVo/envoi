@@ -8,11 +8,12 @@ export const FORWARD_WEBHOOK_JOB_NAME = "envoi_app:forward_webhook";
 
 const queue = fastifyPlugin(
   async (app) => {
+    const redisUrl = new URL(app.env.REDIS_URL);
     // Start queue
     const forwardWebhookQ = new Queue(FORWARD_WEBHOOK_QUEUE_NAME, {
       connection: {
-        host: app.env.REDIS_HOST,
-        port: app.env.REDIS_PORT,
+        host: redisUrl.hostname,
+        port: parseInt(redisUrl.port),
       },
       defaultJobOptions: {
         removeOnComplete: true,
@@ -58,8 +59,8 @@ const queue = fastifyPlugin(
       },
       {
         connection: {
-          host: app.env.REDIS_HOST,
-          port: app.env.REDIS_PORT,
+          host: redisUrl.hostname,
+          port: parseInt(redisUrl.port),
         },
       }
     );

@@ -4,8 +4,7 @@ export interface Env {
   DOMAIN: string;
   PORT?: number;
   API_TOKEN: string;
-  REDIS_HOST: string;
-  REDIS_PORT: number;
+  REDIS_URL: string;
 }
 
 export const EnvSchema: JSONSchemaType<Env> = {
@@ -23,11 +22,8 @@ export const EnvSchema: JSONSchemaType<Env> = {
     API_TOKEN: {
       type: "string",
     },
-    REDIS_HOST: {
+    REDIS_URL: {
       type: "string",
-    },
-    REDIS_PORT: {
-      type: "number",
     },
   },
   additionalProperties: true,
