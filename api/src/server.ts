@@ -10,6 +10,7 @@ import { nanoid } from "nanoid";
 import websocketPlugin from "@fastify/websocket";
 import sockets from "./socket.js";
 import queue from "./queue/index.js";
+import prismaPlugin from "./plugins/prisma.js";
 
 interface EnvOptions {
   development: {
@@ -66,6 +67,8 @@ await app.register(fastifyRedis, {
   url: app.env.REDIS_URL,
   keyPrefix: "envoi:",
 });
+
+await app.register(prismaPlugin);
 
 await app.register(queue);
 

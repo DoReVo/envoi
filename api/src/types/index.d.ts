@@ -3,9 +3,11 @@ import { FastifyInstance } from "fastify";
 import * as ws from "ws";
 
 import { Env } from "../config/Env";
+import { PrismaClient } from "@prisma/client";
 
 declare module "fastify" {
   interface FastifyInstance {
+    prisma: PrismaClient;
     env: Env;
     queue: {
       forwardWebhookQ: Queue;
