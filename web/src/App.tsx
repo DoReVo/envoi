@@ -40,7 +40,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import { isOpenUrlFormAtom, tokenAtom } from "./atoms";
+import { isDarkModeAtom, isOpenUrlFormAtom, tokenAtom } from "./atoms";
 import {
   AddIcon,
   ArrowDownIcon,
@@ -57,6 +57,7 @@ import { DateTime, Duration } from "luxon";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
 import { getEvents } from "./api/events";
+import cls from "classnames";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
@@ -138,31 +139,28 @@ function URLForm() {
       <FormControl isInvalid={!!errors?.url} className="mb-4">
         <FormLabel htmlFor="url">Webhook URL</FormLabel>
         <InputGroup>
-          <InputLeftAddon>{API_URL.toString()}</InputLeftAddon>
+          <InputLeftAddon className="dark:bg-gray-9">{API_URL.toString()}</InputLeftAddon>
           <Input id="url" placeholder="URL Path" {...register("url")} />
-          <InputRightAddon margin={0} padding={1} borderRadius={0}>
-            <Button
-              margin={0}
-              padding={0}
-              color="blue.400"
-              onClick={onClickGenerateWebhookPathButton}
-            >
-              Generate
-            </Button>
-          </InputRightAddon>
-          <InputRightAddon color={"blue"}>
-            <Button
-              margin={0}
-              padding={0}
-              color="blue.400"
-              onClick={onClickCopyWebhookURLButton}
-            >
-              Copy
-            </Button>
-          </InputRightAddon>
         </InputGroup>
+
         <FormErrorMessage>{errors?.url?.message ?? ""}</FormErrorMessage>
       </FormControl>
+      <div className="flex justify-center gap-x-2">
+        <Button
+          colorScheme="blue"
+          className="grow max-w-150px"
+          onClick={onClickGenerateWebhookPathButton}
+        >
+          Generate
+        </Button>
+        <Button
+          colorScheme="blue"
+          className="grow max-w-150px"
+          onClick={onClickCopyWebhookURLButton}
+        >
+          Copy
+        </Button>
+      </div>
 
       <FormControl className="mb-4">
         <div className="flex items-center justify-start gap-x-2 mb-2">
@@ -240,7 +238,7 @@ function URLForm() {
           size="sm"
           leftIcon={<AddIcon />}
           onClick={addTarget}
-          color="blue"
+          colorScheme="blue"
         >
           Add Target
         </Button>
@@ -251,6 +249,7 @@ function URLForm() {
 
 function UrlFormModal() {
   const [isOpenUrlForm, setIsOpenUrlFormModal] = useAtom(isOpenUrlFormAtom);
+  const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
 
   const toast = useToast();
 
@@ -315,23 +314,25 @@ function UrlFormModal() {
         closeOnOverlayClick={false}
         size="3xl"
       >
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Add New URL</ModalHeader>
+        <div className={cls({ dark: isDarkMode })}>
+          <ModalOverlay />
+          <ModalContent className="dark:bg-gray-9 dark:text-white">
+            <ModalHeader className="">Add New URL</ModalHeader>
 
-          <ModalBody>
-            <URLForm />
-          </ModalBody>
+            <ModalBody>
+              <URLForm />
+            </ModalBody>
 
-          <ModalFooter gap="2">
-            <Button color="red" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button color="blue" onClick={onSaveClick}>
-              Save
-            </Button>
-          </ModalFooter>
-        </ModalContent>
+            <ModalFooter gap="2">
+              <Button colorScheme="red" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="blue" onClick={onSaveClick}>
+                Save
+              </Button>
+            </ModalFooter>
+          </ModalContent>
+        </div>
       </Modal>
     </FormProvider>
   );
@@ -474,6 +475,7 @@ function App() {
   const qClient = useQueryClient();
 
   const [token, setToken] = useAtom(tokenAtom);
+  const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
 
   const { readyState } = useWebSocket(
     `${SOCKET_URL.toString()}?token=${token}`,
@@ -517,32 +519,47 @@ function App() {
     setToken(e?.currentTarget?.value);
   };
 
+  const onClickDarkMode = () => {
+    setIsDarkMode((state) => !state);
+  };
+
   return (
-    <div className="p-8 mx-auto">
-      <h1 className="text-center text-3xl font-bold">
-        Envoi Webhook Demultiplexer
-      </h1>
-      <div className="max-w-lg mx-auto">
-        <div className=" flex gap-x-4 mt-8">
-          <div className="font-bold">Status</div>
-          <Tag colorScheme={"green"}>{connectionStatus}</Tag>
-        </div>
-        <div className=" flex gap-x-4 mt-4">
-          <div className="flex justify-center items-center font-bold">
-            Token
-          </div>
-          <Input value={token} onChange={onChangeTokenInput} />
-        </div>
-        <div className=" flex mt-4">
-          <Button colorScheme="blue" onClick={onClickAddUrl}>
-            Add URL
+    <div className={cls({ dark: isDarkMode })}>
+      <div className="dark:bg-gray-9 min-h-screen p-8 mx-auto w-full dark:text-white">
+        <div className="flex flex-col justify-center items-center">
+          <h1 className="text-center text-3xl font-bold ">
+            Envoi Webhook Demultiplexer
+          </h1>
+          <Button colorScheme="blue" onClick={onClickDarkMode}>
+            {isDarkMode ? (
+              <div className="i-carbon-moon" />
+            ) : (
+              <div className="i-carbon-light" />
+            )}
           </Button>
         </div>
+        <div className="max-w-lg mx-auto">
+          <div className=" flex gap-x-4 mt-8">
+            <div className="font-bold">Status</div>
+            <Tag colorScheme={"green"}>{connectionStatus}</Tag>
+          </div>
+          <div className=" flex gap-x-4 mt-4">
+            <div className="flex justify-center items-center font-bold">
+              Token
+            </div>
+            <Input value={token} onChange={onChangeTokenInput} />
+          </div>
+          <div className=" flex mt-4">
+            <Button colorScheme="blue" onClick={onClickAddUrl}>
+              Add URL
+            </Button>
+          </div>
+        </div>
+
+        <WebhookRoutes />
+
+        <UrlFormModal />
       </div>
-
-      <WebhookRoutes />
-
-      <UrlFormModal />
     </div>
   );
 }
