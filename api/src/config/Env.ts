@@ -5,11 +5,12 @@ export interface Env {
   PORT?: number;
   API_TOKEN: string;
   REDIS_URL: string;
+  POSTGRES_URL: string;
 }
 
 export const EnvSchema: JSONSchemaType<Env> = {
   type: "object",
-  required: ["API_TOKEN"],
+  required: ["API_TOKEN", "POSTGRES_URL", "REDIS_URL", "DOMAIN"],
   properties: {
     DOMAIN: {
       type: "string",
@@ -23,6 +24,9 @@ export const EnvSchema: JSONSchemaType<Env> = {
       type: "string",
     },
     REDIS_URL: {
+      type: "string",
+    },
+    POSTGRES_URL: {
       type: "string",
     },
   },
