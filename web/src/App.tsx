@@ -135,7 +135,6 @@ function URLForm() {
 
   return (
     <form>
-      <DevTool control={control} />
       <FormControl isInvalid={!!errors?.url} className="mb-4">
         <FormLabel htmlFor="url">Webhook URL</FormLabel>
         <InputGroup>
