@@ -53,15 +53,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       },
     },
     async (req) => {
-      const { redis } = app;
-      const { targets, url, tags } = req.body;
-
-      await redis.hset(`url:${url}`, {
-        url,
-        targets: JSON.stringify(targets),
-        tags: JSON.stringify(tags ?? []),
-        created: DateTime.now().toISO(),
-      });
+      await app.prisma.route.create({ data: req.body });
 
       return { message: "ok" };
     }

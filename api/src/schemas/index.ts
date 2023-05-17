@@ -1,7 +1,7 @@
 import { JSONSchemaType } from "ajv";
 
 export interface PostRouteBody {
-  url: string;
+  path: string;
   targets: Targets[];
   tags?: string[];
 }
@@ -20,9 +20,9 @@ export const AUTH_HEADER_SCHEMA: JSONSchemaType<{ authorization: string }> = {
 
 export const POST_ROUTE_SCHEMA: JSONSchemaType<PostRouteBody> = {
   type: "object",
-  required: ["targets", "url"],
+  required: ["targets", "path"],
   properties: {
-    url: {
+    path: {
       type: "string",
     },
     targets: {
