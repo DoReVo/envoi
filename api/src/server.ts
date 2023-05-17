@@ -45,7 +45,7 @@ const environment: keyof EnvOptions =
 
 const app = fastify({
   logger: (envToLogger?.[environment] as FastifyLoggerOptions) ?? true,
-  disableRequestLogging: false,
+  disableRequestLogging: true,
   genReqId: () => nanoid(),
 });
 
