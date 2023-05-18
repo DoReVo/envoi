@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, Worker } from "bullmq";
 import { FastifyInstance } from "fastify";
 import * as ws from "ws";
 
@@ -11,6 +11,9 @@ declare module "fastify" {
     env: Env;
     queue: {
       forwardWebhookQ: Queue;
+    };
+    worker: {
+      forwardWebhookWorker: Worker;
     };
   }
 }

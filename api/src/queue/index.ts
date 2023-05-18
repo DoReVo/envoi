@@ -26,7 +26,7 @@ const queue = fastifyPlugin(
       },
     });
 
-    new Worker(
+    const forwardWebhookWorker = new Worker(
       FORWARD_WEBHOOK_JOB_NAME,
       async (data: Job<{ target: { value: string }; data: WebhookData }>) => {
         const { data: jobData } = data;
@@ -74,7 +74,15 @@ const queue = fastifyPlugin(
       }
     );
 
+    forwardWebhookWorker.on("closing", () =>
+      app.log.info("Forward Webhook Worker is shutting down")
+    );
+    forwardWebhookWorker.on("closed", () =>
+      app.log.info("Forward Webhook Worker is closed")
+    );
+
     app.decorate("queue", { forwardWebhookQ });
+    app.decorate("worker", { forwardWebhookWorker });
   },
   { fastify: "^4.15.0", name: "queue" }
 );
