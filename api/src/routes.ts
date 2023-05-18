@@ -7,6 +7,12 @@ import {
   PostRouteBody,
   POST_ROUTE_SCHEMA,
 } from "./schemas/index.js";
+import { Prisma } from "@prisma/client";
+import { PrismaClientRustPanicError } from "@prisma/client/runtime/index.js";
+import { PrismaClientValidationError } from "@prisma/client/runtime/index.js";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/index.js";
+import { PrismaClientInitializationError } from "@prisma/client/runtime/index.js";
+import { PrismaClientUnknownRequestError } from "@prisma/client/runtime/index.js";
 
 const routes: FastifyPluginCallback = async (app, _opts) => {
   app.get(
@@ -17,6 +23,9 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       },
     },
     async () => {
+      try {
+        let items = await app.prisma.route.findMany();
+      } catch (error) {}
       const { redis } = app;
 
       let data = await redis.keys("envoi:url:*");
@@ -52,10 +61,31 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
         body: POST_ROUTE_SCHEMA,
       },
     },
-    async (req) => {
-      await app.prisma.route.create({ data: req.body });
+    async (req, res) => {
+      let route;
+      try {
+        route = await app.prisma.route.create({ data: req.body });
+      } catch (error) {
+        const isPrismaError =
+          error instanceof PrismaClientRustPanicError ||
+          error instanceof PrismaClientValidationError ||
+          error instanceof PrismaClientKnownRequestError ||
+          error instanceof PrismaClientInitializationError ||
+          error instanceof PrismaClientUnknownRequestError;
 
-      return { message: "ok" };
+        if (isPrismaError)
+          return res.code(400).send({ error: { message: error?.message } });
+        else if (error instanceof Error)
+          return res.code(500).send({
+            error: { message: `Server error ${error?.message}` },
+          });
+        else
+          return res.code(500).send({
+            error: { message: "Unhandled server error" },
+          });
+      }
+
+      return route;
     }
   );
 

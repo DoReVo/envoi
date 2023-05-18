@@ -11,9 +11,11 @@ datasource db {
 }
 
 model Route {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   path      String   @unique
   targets   Json     @db.JsonB
   tags      Json?    @db.JsonB
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("routes")
 }
