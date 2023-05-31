@@ -147,10 +147,6 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     }
   );
 
-  app.get("/test", async (req) => {
-    return await req.server.queue.forwardWebhookQ.getMetrics("completed");
-  });
-
   /* Really basic auth */
   app.addHook("preHandler", async (req, res) => {
     const token = req?.headers?.authorization;

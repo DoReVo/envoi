@@ -18,19 +18,6 @@ declare module "fastify" {
   }
 }
 
-declare namespace WebhookEntry {
-  interface Data {
-    url: string;
-    targets: Target[];
-    tags: string[];
-    created: string;
-  }
-
-  interface Target {
-    value: string;
-  }
-}
-
 declare module "ws" {
   export interface WebSocket extends ws {
     META_DATA: MetaData;

@@ -1,7 +1,7 @@
 import { Job, Queue, Worker } from "bullmq";
 import fastifyPlugin from "fastify-plugin";
 import got, { HTTPError } from "got";
-import { WebhookData } from "../handlers/webhook";
+import { Event } from "@prisma/client";
 
 export const FORWARD_WEBHOOK_QUEUE_NAME = "envoi_app:forward_webhook";
 export const FORWARD_WEBHOOK_JOB_NAME = "envoi_app:forward_webhook";
@@ -28,7 +28,7 @@ const queue = fastifyPlugin(
 
     const forwardWebhookWorker = new Worker(
       FORWARD_WEBHOOK_JOB_NAME,
-      async (data: Job<{ target: { value: string }; data: WebhookData }>) => {
+      async (data: Job<{ target: { value: string }; data: Event }>) => {
         const { data: jobData } = data;
 
         app.log.info(
@@ -45,7 +45,7 @@ const queue = fastifyPlugin(
             allowGetBody: true,
             method: jobData?.data?.method as any,
             json: jobData?.data?.body,
-            searchParams: jobData?.data?.queryString,
+            searchParams: jobData?.data?.queryString as any,
             retry: {
               limit: 0,
             },
