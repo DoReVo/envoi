@@ -92,7 +92,7 @@ const signals = {
 // Create a listener for each of the signals that we want to handle
 Object.keys(signals).forEach((signal) => {
   process.on(signal, async () => {
-    app.log.info("Shutdown process started");
+    app.log.info("Shutdown process started, signal given: %s", signal);
 
     app.log.info("Server | Forward Webhook Queue is shutting down");
     await app.queue.forwardWebhookQ.close();
@@ -106,7 +106,7 @@ Object.keys(signals).forEach((signal) => {
     await app.close();
     app.log.info("HTTP Server is closed");
 
-    app.log.info("Shutdown process finished");
+    app.log.info("Shutdown process finished, signal given: %s", signal);
 
     process.exit(0);
   });
