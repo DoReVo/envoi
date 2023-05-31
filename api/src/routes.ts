@@ -1,9 +1,6 @@
 import { FastifyPluginCallback } from "fastify";
-import { DateTime } from "luxon";
 import {
   AUTH_HEADER_SCHEMA,
-  DeleteRouteBody,
-  DELETE_ROUTE_SCHEMA,
   PostRouteBody,
   POST_ROUTE_SCHEMA,
 } from "./schemas/index.js";
@@ -16,6 +13,7 @@ import {
 } from "@prisma/client/runtime/library.js";
 
 const routes: FastifyPluginCallback = async (app, _opts) => {
+  const { prisma } = app;
   app.get(
     "/route",
     {
@@ -24,34 +22,9 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       },
     },
     async () => {
-      try {
-        let items = await app.prisma.route.findMany();
-      } catch (error) {}
-      const { redis } = app;
+      const routes = await prisma.route.findMany();
 
-      let data = await redis.keys("envoi:url:*");
-      // remove envoi
-      data = data.map((key) => key.slice(6));
-
-      const proms = await Promise.all(data.map((key) => redis.hgetall(key)));
-
-      const sortDateTimes = (a: any, b: any) =>
-        DateTime.fromISO(a.created) < DateTime.fromISO(b.created)
-          ? -1
-          : DateTime.fromISO(a.created) > DateTime.fromISO(b.created)
-          ? 1
-          : 0;
-
-      let res: PostRouteBody[] = proms.map((entry) => ({
-        url: entry?.url!,
-        targets: JSON.parse(entry?.targets!),
-        tags: JSON.parse(entry?.tags ?? "[]"),
-        created: entry?.created,
-      }));
-
-      res = res.sort(sortDateTimes);
-
-      return res;
+      return routes;
     }
   );
   app.post<{ Body: PostRouteBody }>(
@@ -62,20 +35,23 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
         body: POST_ROUTE_SCHEMA,
       },
     },
-    async (req, res) => {
-      let route;
-      try {
-        route = await app.prisma.route.create({ data: req.body });
-      } catch (error) {
-        throw error;
-      }
+    async (req, _res) => {
+      // Remove / prefix if present
+      const path = req.body.path.replace(/^\/*/gm, "");
 
-      return route;
+      const dataToSave = {
+        ...req.body,
+        path,
+      };
+
+      const response = await app.prisma.route.create({ data: dataToSave });
+
+      return response;
     }
   );
 
-  app.patch<{ Params: { url: string }; Body: PostRouteBody }>(
-    "/route",
+  app.patch<{ Body: PostRouteBody; Params: { id: string } }>(
+    "/route/:id",
     {
       schema: {
         headers: AUTH_HEADER_SCHEMA,
@@ -83,35 +59,42 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       },
     },
     async (req) => {
-      const { redis } = app;
-      const { targets, url, tags } = req.body;
+      // Remove / prefix if present
+      const path = req.body.path.replace(/^\/*/gm, "");
 
-      const key = `url:${url}`;
-      await redis.del(key);
-      await redis.hset(key, {
-        url,
-        targets: JSON.stringify(targets),
-        tags: JSON.stringify(tags ?? []),
-        created: DateTime.now().toISO(),
+      const dataToSave = {
+        ...req.body,
+        path,
+      };
+
+      const route = await prisma.route.update({
+        where: {
+          id: req.params.id,
+        },
+        data: dataToSave,
       });
 
-      return { message: "ok" };
+      return route;
     }
   );
 
-  app.delete<{ Body: DeleteRouteBody }>(
-    "/route",
+  app.delete<{ Params: { id: string } }>(
+    "/route/:id",
     {
       schema: {
         headers: AUTH_HEADER_SCHEMA,
-        body: DELETE_ROUTE_SCHEMA,
       },
     },
     async (req) => {
-      const { redis } = app;
-      const { url } = req.body;
+      req.log.info("Deleting route: %s", req.params.id);
 
-      await redis.del(`url:${url}`);
+      await prisma.route.delete({
+        where: {
+          id: req.params.id,
+        },
+      });
+
+      req.log.info("Deleted route: %s", req.params.id);
 
       return { message: "ok" };
     }

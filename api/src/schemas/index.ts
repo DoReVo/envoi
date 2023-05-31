@@ -47,16 +47,3 @@ export const POST_ROUTE_SCHEMA: JSONSchemaType<PostRouteBody> = {
     },
   },
 };
-
-export type DeleteRouteBody = Pick<PostRouteBody, "url">;
-
-export const DELETE_ROUTE_SCHEMA: JSONSchemaType<DeleteRouteBody> = {
-  type: "object",
-  required: ["url"],
-  properties: {
-    url: {
-      type: "string",
-      format: "uri",
-    },
-  },
-};
