@@ -102,48 +102,43 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
   );
 
   // Get all events for the given path
-  app.get<{ Querystring: { path: PostRouteBody["url"] } }>(
-    "/route/events",
+  app.get<{ Params: { id: string } }>(
+    "/route/:id/event",
     {
       schema: {
-        querystring: {
-          type: "object",
-          required: ["path"],
-          properties: {
-            path: {
-              type: "string",
-            },
-          },
-        },
+        headers: AUTH_HEADER_SCHEMA,
       },
     },
     async (req) => {
-      const { path } = req?.query;
+      const events = await prisma.event.findMany({
+        where: {
+          routeId: req?.params?.id,
+        },
+        orderBy: {
+          timestamp: "desc",
+        },
+      });
 
-      const {
-        server: { redis },
-      } = req;
+      return events;
+    }
+  );
 
-      const key = `event_stream:url:${path}`;
+  // Get all events for the given path
+  app.delete<{ Params: { id: string } }>(
+    "/route/:id/event",
+    {
+      schema: {
+        headers: AUTH_HEADER_SCHEMA,
+      },
+    },
+    async (req) => {
+      await prisma.event.deleteMany({
+        where: {
+          routeId: req?.params?.id,
+        },
+      });
 
-      let data = await redis.xrange(key, "-", "+");
-
-      data = data.reverse();
-
-      data = data.map((entry) => {
-        // First element is the streamId,
-        // second is our data
-        const id = entry[0];
-        // First element is the key,
-        // Second is the data
-        let rawData = entry[1];
-
-        rawData = JSON.parse(rawData[1] as any);
-
-        return { streamId: id, data: rawData };
-      }) as any;
-
-      return data;
+      return { message: "ok" };
     }
   );
 
