@@ -11,6 +11,7 @@ import {
   PrismaClientInitializationError,
   PrismaClientUnknownRequestError,
 } from "@prisma/client/runtime/library.js";
+import { stripSlashPrefix } from "./utility/index.js";
 
 const routes: FastifyPluginCallback = async (app, _opts) => {
   const { prisma } = app;
@@ -37,7 +38,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     },
     async (req, _res) => {
       // Remove / prefix if present
-      const path = req.body.path.replace(/^\/*/gm, "");
+      const path = stripSlashPrefix(req.body.path);
 
       const dataToSave = {
         ...req.body,
@@ -60,7 +61,7 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
     },
     async (req) => {
       // Remove / prefix if present
-      const path = req.body.path.replace(/^\/*/gm, "");
+      const path = stripSlashPrefix(req.body.path);
 
       const dataToSave = {
         ...req.body,

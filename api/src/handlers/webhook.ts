@@ -3,6 +3,7 @@ import { isEmpty } from "lodash-es";
 import { DateTime } from "luxon";
 import { FORWARD_WEBHOOK_JOB_NAME } from "../queue/index.js";
 import { WebhookEntry } from "../types/index.js";
+import { stripSlashPrefix } from "../utility/strip-slash-prefix.js";
 
 export interface WebhookData {
   reqId: string;
@@ -99,7 +100,7 @@ export const WebhookPreHandler: RouteHandlerMethod = async (req, res) => {
   }
 };
 
-export const WebhookHandler: RouteHandlerMethod = async (req, _res) => {
+export const WebhookHandler: RouteHandlerMethod = async (req, res) => {
   const url = new URL(`${req?.server?.env?.DOMAIN}${req?.url}`);
   // Strip /webhook
   let path = url.pathname.match(/(?<prefix>\/webhook\/)(?<path>.+)/m)?.groups
@@ -107,15 +108,26 @@ export const WebhookHandler: RouteHandlerMethod = async (req, _res) => {
 
   if (!path) throw new Error("No path match");
 
-  const key = `url:${path}`;
-  // Find path in DB
-  let pathInDB = await req.server.redis.hgetall(key);
+  path = stripSlashPrefix(path);
 
-  pathInDB = {
-    ...pathInDB,
-    targets: JSON.parse(pathInDB?.targets ?? "[]"),
-    tags: JSON.parse(pathInDB?.tags ?? "[]"),
+  // Find path in db
+
+  const routeData = await req.server.prisma.route.findFirst({
+    where: {
+      path,
+    },
+  });
+
+  if (!routeData)
+    return res
+      .status(404)
+      .send({ error: { message: `Path ${path} not found` } });
+
+  // Save event in DB
+  const dataToSave = {
+    method: req.method,
+    header: req.headers,
   };
 
-  return pathInDB;
+  return { message: "ok" };
 };

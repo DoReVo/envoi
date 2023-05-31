@@ -5,7 +5,7 @@ const customRoutes: FastifyPluginCallback = async (app) => {
   app.route({
     method: ["GET", "POST"],
     url: "/*",
-    preHandler: WebhookPreHandler,
+    // preHandler: WebhookPreHandler,
     handler: WebhookHandler,
   });
 };
