@@ -58,6 +58,8 @@ import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
 import { getEvents } from "./api/events";
 import cls from "classnames";
+import BaseButton from "./components/base/Button";
+import TextInput from "./components/base/TextInput";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
@@ -139,7 +141,9 @@ function URLForm() {
       <FormControl isInvalid={!!errors?.url} className="mb-4">
         <FormLabel htmlFor="url">Webhook URL</FormLabel>
         <InputGroup>
-          <InputLeftAddon className="dark:bg-gray-9">{API_URL.toString()}</InputLeftAddon>
+          <InputLeftAddon className="dark:bg-gray-9">
+            {API_URL.toString()}
+          </InputLeftAddon>
           <Input id="url" placeholder="URL Path" {...register("url")} />
         </InputGroup>
 
@@ -524,35 +528,38 @@ function App() {
   };
 
   return (
-    <div className={cls({ dark: isDarkMode })}>
+    <div className={cls({ dark: isDarkMode }, "font-mono")}>
       <div className="dark:bg-gray-9 min-h-screen p-8 mx-auto w-full dark:text-white">
         <div className="flex flex-col justify-center items-center">
           <h1 className="text-center text-3xl font-bold ">
             Envoi Webhook Demultiplexer
           </h1>
-          <Button colorScheme="blue" onClick={onClickDarkMode}>
+          <BaseButton onPress={onClickDarkMode}>
             {isDarkMode ? (
               <div className="i-carbon-moon" />
             ) : (
               <div className="i-carbon-light" />
             )}
-          </Button>
+          </BaseButton>
         </div>
         <div className="max-w-lg mx-auto">
           <div className=" flex gap-x-4 mt-8">
             <div className="font-bold">Status</div>
-            <Tag colorScheme={"green"}>{connectionStatus}</Tag>
+            <span className="bg-green-200 p-1 rounded text-sm">
+              {connectionStatus}
+            </span>
           </div>
           <div className=" flex gap-x-4 mt-4">
             <div className="flex justify-center items-center font-bold">
               Token
             </div>
-            <Input value={token} onChange={onChangeTokenInput} />
+            <TextInput value={token} onChange={onChangeTokenInput} />
           </div>
           <div className=" flex mt-4">
-            <Button colorScheme="blue" onClick={onClickAddUrl}>
-              Add URL
-            </Button>
+            <BaseButton onPress={onClickAddUrl}>
+              <span>Add URL</span>
+              <span className="inline-block i-carbon-add"></span>
+            </BaseButton>
           </div>
         </div>
 
