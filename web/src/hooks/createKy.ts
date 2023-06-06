@@ -1,7 +1,7 @@
 import ky from "ky";
 import { isEmpty, isNull } from "lodash";
 
-export function useKy() {
+export function createKy() {
   return ky.create({
     prefixUrl: import.meta.env.VITE_API_URL,
     hooks: {

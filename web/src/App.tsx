@@ -1,344 +1,43 @@
-import {
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Modal,
-  ModalBody,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  useClipboard,
-  CloseButton,
-  InputGroup,
-  InputLeftAddon,
-  InputRightAddon,
-  useToast,
-  Tag,
-  TagLabel,
-  TagCloseButton,
-  Tooltip,
-  Divider,
-  IconButton,
-  Code,
-  Spinner,
-} from "@chakra-ui/react";
+import { useToast, Divider, IconButton, Code, Spinner } from "@chakra-ui/react";
 import Joi from "joi";
 import { useAtom } from "jotai";
-import {
-  useEffect,
-  KeyboardEventHandler,
-  useState,
-  ChangeEventHandler,
-} from "react";
-import {
-  FormProvider,
-  useFieldArray,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { useState, ChangeEventHandler } from "react";
+import { FormProvider, useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { isDarkModeAtom, isOpenUrlFormAtom, tokenAtom } from "./atoms";
-import {
-  AddIcon,
-  ArrowDownIcon,
-  ArrowUpIcon,
-  InfoIcon,
-} from "@chakra-ui/icons";
-import { DevTool } from "@hookform/devtools";
-import { faker } from "@faker-js/faker";
-import { isEmpty, isString } from "lodash";
+import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createRoute, getAllRoutes } from "./api/url";
 import { HTTPError } from "ky";
-import { DateTime, Duration } from "luxon";
+import { DateTime } from "luxon";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
 import { getEvents } from "./api/events";
 import cls from "classnames";
 import BaseButton from "./components/base/Button";
 import TextInput from "./components/base/TextInput";
+import { Dialog, Modal } from "./components/base/Modal";
+import { useOverlayTriggerState } from "react-stately";
+import URLForm from "./components/URLForm";
 
-const API_URL = new URL(import.meta.env.VITE_API_URL);
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
-
-const URL_FORM_SCHEMA = Joi.object({
-  url: Joi.string().uri({ relativeOnly: true }).required(),
-  targets: Joi.array()
-    .items(
-      Joi.object({
-        value: Joi.string().uri().required(),
-      })
-    )
-    .min(1)
-    .required(),
-  tags: Joi.array().items(Joi.string()),
-}).required();
-
-function URLForm() {
-  const toast = useToast();
-  const {
-    control,
-    handleSubmit,
-    register,
-    formState: { errors, isSubmitting },
-    watch,
-    setValue,
-    getValues,
-  } = useFormContext<Form.Url.Data>();
-
-  const { append, fields, remove } = useFieldArray<Form.Url.Data>({
-    name: "targets",
-  });
-
-  const url = watch("url");
-  const tags = watch("tags");
-
-  const { onCopy, setValue: setValueClipboard } = useClipboard("");
-
-  const WEBHOOK_URL = `${API_URL.toString()}${url}`;
-
-  useEffect(() => {
-    setValueClipboard(WEBHOOK_URL);
-  }, [url]);
-
-  const onClickCopyWebhookURLButton = () => {
-    onCopy();
-    toast({ title: "Webhook URL Copied", status: "success", position: "top" });
-  };
-
-  const onClickGenerateWebhookPathButton = () => {
-    setValue("url", faker.lorem.slug(3));
-  };
-
-  const addTarget = () => {
-    append({ value: "" });
-  };
-
-  const removeTarget = (index: number) => {
-    remove(index);
-  };
-
-  const onKeyDownTagInput: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === "Enter" && e?.currentTarget?.value?.trim() !== "") {
-      setValue("tags", [...tags, e?.currentTarget?.value]);
-
-      e.currentTarget.value = "";
-    }
-  };
-
-  const removeTag = (index: number) => {
-    setValue(
-      "tags",
-      tags.filter((_, tagIndex) => tagIndex !== index)
-    );
-  };
-
-  return (
-    <form>
-      <FormControl isInvalid={!!errors?.url} className="mb-4">
-        <FormLabel htmlFor="url">Webhook URL</FormLabel>
-        <InputGroup>
-          <InputLeftAddon className="dark:bg-gray-9">
-            {API_URL.toString()}
-          </InputLeftAddon>
-          <Input id="url" placeholder="URL Path" {...register("url")} />
-        </InputGroup>
-
-        <FormErrorMessage>{errors?.url?.message ?? ""}</FormErrorMessage>
-      </FormControl>
-      <div className="flex justify-center gap-x-2">
-        <Button
-          colorScheme="blue"
-          className="grow max-w-150px"
-          onClick={onClickGenerateWebhookPathButton}
-        >
-          Generate
-        </Button>
-        <Button
-          colorScheme="blue"
-          className="grow max-w-150px"
-          onClick={onClickCopyWebhookURLButton}
-        >
-          Copy
-        </Button>
-      </div>
-
-      <FormControl className="mb-4">
-        <div className="flex items-center justify-start gap-x-2 mb-2">
-          <FormLabel htmlFor="tag" margin={0}>
-            Tags
-          </FormLabel>
-          <Tooltip
-            hasArrow
-            placement="bottom-start"
-            label={
-              <div>
-                Tag with special handling
-                <ul>
-                  <li>fb</li>
-                  <li>line</li>
-                  <li>teams</li>
-                  <li>slack</li>
-                  <li>telegram</li>
-                  <li>viber</li>
-                  <li>wechat</li>
-                  <li>webex</li>
-                  <li>instagram</li>
-                </ul>
-              </div>
-            }
-          >
-            <InfoIcon color="blue.300" />
-          </Tooltip>
-        </div>
-
-        <Input
-          id="tag"
-          placeholder="Type and enter tags"
-          onKeyDown={onKeyDownTagInput}
-        />
-      </FormControl>
-      <div className="mb-4 flex gap-1 flex-wrap">
-        {tags?.map((entry, index) => (
-          <Tag colorScheme={"blue"} key={index}>
-            <TagLabel>{entry}</TagLabel>
-            <TagCloseButton onClick={() => removeTag(index)} />
-          </Tag>
-        ))}
-      </div>
-
-      <div className="font-bold">Webhook Forward Targets</div>
-      <FormControl isInvalid={!!errors?.targets?.message} className="mb-4">
-        <FormErrorMessage>{errors?.targets?.message}</FormErrorMessage>
-      </FormControl>
-
-      {fields.map((field, index) => (
-        <FormControl
-          key={`FormControl-${field.id}`}
-          isInvalid={!!errors?.targets?.[index]}
-          className="mb-4"
-        >
-          <div className="flex items-center">
-            <Input
-              id={`Target-${field.id}`}
-              placeholder={`Webhook Forward Target ${index + 1}`}
-              {...register(`targets.${index}.value`)}
-            />
-            <CloseButton color="red" onClick={() => removeTarget(index)} />
-          </div>
-
-          <FormErrorMessage>
-            {errors?.targets?.[index]?.value?.message ?? ""}
-          </FormErrorMessage>
-        </FormControl>
-      ))}
-      <FormControl></FormControl>
-
-      <div className="mt-4 flex justify-start">
-        <Button
-          size="sm"
-          leftIcon={<AddIcon />}
-          onClick={addTarget}
-          colorScheme="blue"
-        >
-          Add Target
-        </Button>
-      </div>
-    </form>
-  );
-}
 
 function UrlFormModal() {
   const [isOpenUrlForm, setIsOpenUrlFormModal] = useAtom(isOpenUrlFormAtom);
   const [isDarkMode, setIsDarkMode] = useAtom(isDarkModeAtom);
 
-  const toast = useToast();
-
-  const qClient = useQueryClient();
-
-  const useFormReturn = useForm<Form.Url.Data>({
-    resolver: joiResolver(URL_FORM_SCHEMA, { abortEarly: false }),
-    defaultValues: {
-      url: "",
-      targets: [],
-      tags: [],
-    },
-  });
-
   const onClose = () => {
-    useFormReturn.reset();
     setIsOpenUrlFormModal(false);
   };
 
-  const createRouteMUT = useMutation(createRoute, {
-    onSuccess: () => {
-      qClient.invalidateQueries(["all-routes"]);
-      onClose();
-      toast({ title: "Webhook created", status: "success", position: "top" });
-    },
-    onError: async (res) => {
-      if (res instanceof HTTPError) {
-        try {
-          const err = await res?.response?.json();
-          if (err?.error?.message)
-            toast({
-              title: err?.error?.message,
-              status: "error",
-              position: "top",
-            });
-          else throw new Error("Unkown error");
-        } catch (error) {
-          toast({
-            title: "Unexpected Error",
-            status: "error",
-            position: "top",
-          });
-        }
-      }
-    },
-  });
-
-  function onSubmitHandler(data: Form.Url.Data) {
-    console.log("Submitted", data);
-    createRouteMUT.mutate(data);
-  }
-
-  const onSaveClick = () => {
-    useFormReturn.handleSubmit(onSubmitHandler)();
-  };
+  const state = useOverlayTriggerState({ isOpen: isOpenUrlForm });
 
   return (
-    <FormProvider {...useFormReturn}>
-      <Modal
-        isOpen={isOpenUrlForm}
-        onClose={onClose}
-        closeOnOverlayClick={false}
-        size="3xl"
-      >
-        <div className={cls({ dark: isDarkMode })}>
-          <ModalOverlay />
-          <ModalContent className="dark:bg-gray-9 dark:text-white">
-            <ModalHeader className="">Add New URL</ModalHeader>
-
-            <ModalBody>
-              <URLForm />
-            </ModalBody>
-
-            <ModalFooter gap="2">
-              <Button colorScheme="red" onClick={onClose}>
-                Cancel
-              </Button>
-              <Button colorScheme="blue" onClick={onSaveClick}>
-                Save
-              </Button>
-            </ModalFooter>
-          </ModalContent>
-        </div>
-      </Modal>
-    </FormProvider>
+    <Modal state={state}>
+      <Dialog title="Add New URL">
+        <URLForm onClose={onClose} />
+      </Dialog>
+    </Modal>
   );
 }
 

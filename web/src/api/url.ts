@@ -1,6 +1,6 @@
-import { useKy } from "../hooks/useKy";
+import { createKy } from "../hooks/createKy";
 
-const ky = useKy();
+const ky = createKy();
 
 export async function createRoute(data: Form.Url.Data) {
   return await ky

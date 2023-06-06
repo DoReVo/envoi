@@ -6,3 +6,11 @@ export declare namespace Websockets {
     data: Event;
   }
 }
+
+export declare namespace RouteAPI {
+  export interface POSTBody {
+    path: string;
+    targets: Targets[];
+    tags?: string[];
+  }
+}
