@@ -1,23 +1,7 @@
-import { InfoIcon, AddIcon } from "@chakra-ui/icons";
-import {
-  useToast,
-  FormControl,
-  FormLabel,
-  InputGroup,
-  InputLeftAddon,
-  Input,
-  FormErrorMessage,
-  Button,
-  Tooltip,
-  Tag,
-  TagLabel,
-  TagCloseButton,
-  CloseButton,
-  useClipboard,
-} from "@chakra-ui/react";
+import { useToast, useClipboard } from "@chakra-ui/react";
 import { faker } from "@faker-js/faker";
-import { useEffect, KeyboardEventHandler } from "react";
-import { useFormContext, useFieldArray, useForm } from "react-hook-form";
+import { useEffect, KeyboardEventHandler, PropsWithChildren } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 import BaseButton from "./base/Button";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
@@ -25,6 +9,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createRoute } from "../api/url";
 import { HTTPError } from "ky";
 import type { RouteAPI } from "common";
+import TextInput from "./base/TextInput";
+import { usePress } from "react-aria";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
@@ -40,6 +26,16 @@ const URL_FORM_SCHEMA = Joi.object({
     .required(),
   tags: Joi.array().items(Joi.string()),
 }).required();
+
+function FormTag(props: PropsWithChildren<{ pressCB: () => void }>) {
+  const { pressProps } = usePress({ onPress: props.pressCB });
+
+  return (
+    <div className="text-white bg-blue-400 p-1 rounded text-sm" {...pressProps}>
+      {props.children}
+    </div>
+  );
+}
 
 function URLForm({ onClose }: { onClose: () => void }) {
   const toast = useToast();
@@ -129,6 +125,7 @@ function URLForm({ onClose }: { onClose: () => void }) {
       setValue("tags", [...tags, e?.currentTarget?.value]);
 
       e.currentTarget.value = "";
+      e.preventDefault();
     }
   };
 
@@ -146,116 +143,50 @@ function URLForm({ onClose }: { onClose: () => void }) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <FormControl isInvalid={!!errors?.path} className="mb-4">
-        <FormLabel htmlFor="url">Webhook URL</FormLabel>
-        <InputGroup>
-          <InputLeftAddon className="dark:bg-gray-9">
-            {API_URL.toString()}
-          </InputLeftAddon>
-          <Input id="url" placeholder="URL Path" {...register("path")} />
-        </InputGroup>
-
-        <FormErrorMessage>{errors?.path?.message ?? ""}</FormErrorMessage>
-      </FormControl>
-      <div className="flex justify-center gap-x-2">
-        <Button
-          colorScheme="blue"
-          className="grow max-w-150px"
-          onClick={onClickGenerateWebhookPathButton}
-        >
+      <label>Webhook URL</label>
+      <TextInput {...register("path")} />
+      <span className="text-red-400">{errors?.path?.message}</span>
+      <div className="flex justify-center gap-x-2 mt-2">
+        <BaseButton onPress={onClickGenerateWebhookPathButton}>
           Generate
-        </Button>
-        <Button
-          colorScheme="blue"
-          className="grow max-w-150px"
-          onClick={onClickCopyWebhookURLButton}
-        >
-          Copy
-        </Button>
+        </BaseButton>
+        <BaseButton onPress={onClickCopyWebhookURLButton}>Copy</BaseButton>
       </div>
-
-      <FormControl className="mb-4">
-        <div className="flex items-center justify-start gap-x-2 mb-2">
-          <FormLabel htmlFor="tag" margin={0}>
-            Tags
-          </FormLabel>
-          <Tooltip
-            hasArrow
-            placement="bottom-start"
-            label={
-              <div>
-                Tag with special handling
-                <ul>
-                  <li>fb</li>
-                  <li>line</li>
-                  <li>teams</li>
-                  <li>slack</li>
-                  <li>telegram</li>
-                  <li>viber</li>
-                  <li>wechat</li>
-                  <li>webex</li>
-                  <li>instagram</li>
-                </ul>
-              </div>
-            }
-          >
-            <InfoIcon color="blue.300" />
-          </Tooltip>
-        </div>
-
-        <Input
-          id="tag"
-          placeholder="Type and enter tags"
-          onKeyDown={onKeyDownTagInput}
-        />
-      </FormControl>
-      <div className="mb-4 flex gap-1 flex-wrap">
+      <label>Tags</label>
+      <TextInput
+        id="tag"
+        placeholder="Type and enter tags"
+        onKeyDown={onKeyDownTagInput}
+      />
+      <div className="mb-4 mt-2 flex gap-1 flex-wrap">
         {tags?.map((entry, index) => (
-          <Tag colorScheme={"blue"} key={index}>
-            <TagLabel>{entry}</TagLabel>
-            <TagCloseButton onClick={() => removeTag(index)} />
-          </Tag>
+          <FormTag pressCB={() => removeTag(index)}>{entry}</FormTag>
         ))}
       </div>
-
       <div className="font-bold">Webhook Forward Targets</div>
-      <FormControl isInvalid={!!errors?.targets?.message} className="mb-4">
-        <FormErrorMessage>{errors?.targets?.message}</FormErrorMessage>
-      </FormControl>
-
+      <span className="text-red-400">{errors?.targets?.message}</span>
       {fields.map((field, index) => (
-        <FormControl
-          key={`FormControl-${field.id}`}
-          isInvalid={!!errors?.targets?.[index]}
-          className="mb-4"
-        >
-          <div className="flex items-center">
-            <Input
+        <div className="flex flex-col gap-y-2">
+          <div className="flex gap-x-2">
+            <TextInput
               id={`Target-${field.id}`}
               placeholder={`Webhook Forward Target ${index + 1}`}
               {...register(`targets.${index}.value`)}
             />
-            <CloseButton color="red" onClick={() => removeTarget(index)} />
+            <BaseButton onPress={() => removeTarget(index)}>
+              <div className="i-carbon-close"></div>
+            </BaseButton>
           </div>
 
-          <FormErrorMessage>
+          <span className="text-red-400">
             {errors?.targets?.[index]?.value?.message ?? ""}
-          </FormErrorMessage>
-        </FormControl>
+          </span>
+        </div>
       ))}
-      <FormControl></FormControl>
 
       <div className="mt-4 flex justify-start">
-        <Button
-          size="sm"
-          leftIcon={<AddIcon />}
-          onClick={addTarget}
-          colorScheme="blue"
-        >
-          Add Target
-        </Button>
+        <BaseButton onPress={addTarget}>Add Target</BaseButton>
       </div>
-
       <div className="flex gap-x-2 mt-2 flex-row-reverse">
         <BaseButton className="grow" type="submit">
           Save
