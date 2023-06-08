@@ -9,7 +9,7 @@ import { createRoute } from "../api/url";
 import { HTTPError } from "ky";
 import type { RouteAPI } from "common";
 import TextInput from "./base/TextInput";
-import { useClipboard, usePress } from "react-aria";
+import { usePress } from "react-aria";
 import { toastQueue as toast } from "./Toast";
 import { useCopyToClipboard } from "react-use";
 
@@ -122,8 +122,7 @@ function URLForm({ onClose }: { onClose: () => void }) {
     );
   };
 
-  function onSubmit(data) {
-    console.log("SUBMITTED", data);
+  function onSubmit(data: any) {
     createRouteMUT.mutate(data);
   }
 
