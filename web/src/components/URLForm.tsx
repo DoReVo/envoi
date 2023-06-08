@@ -1,4 +1,4 @@
-import { useToast, useClipboard } from "@chakra-ui/react";
+import { useClipboard } from "@chakra-ui/react";
 import { faker } from "@faker-js/faker";
 import { useEffect, KeyboardEventHandler, PropsWithChildren } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -11,6 +11,7 @@ import { HTTPError } from "ky";
 import type { RouteAPI } from "common";
 import TextInput from "./base/TextInput";
 import { usePress } from "react-aria";
+import { toastQueue as toast } from "./Toast";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
@@ -38,8 +39,6 @@ function FormTag(props: PropsWithChildren<{ pressCB: () => void }>) {
 }
 
 function URLForm({ onClose }: { onClose: () => void }) {
-  const toast = useToast();
-
   const {
     control,
     handleSubmit,
@@ -63,25 +62,16 @@ function URLForm({ onClose }: { onClose: () => void }) {
     onSuccess: () => {
       qClient.invalidateQueries(["all-routes"]);
       onClose();
-      toast({ title: "Webhook created", status: "success", position: "top" });
+      toast.add("Webhook created");
     },
     onError: async (res) => {
       if (res instanceof HTTPError) {
         try {
           const err = await res?.response?.json();
-          if (err?.error?.message)
-            toast({
-              title: err?.error?.message,
-              status: "error",
-              position: "top",
-            });
+          if (err?.error?.message) toast.add(err?.error?.message);
           else throw new Error("Unkown error");
         } catch (error) {
-          toast({
-            title: "Unexpected Error",
-            status: "error",
-            position: "top",
-          });
+          toast.add("Unexpected Error");
         }
       }
     },
@@ -105,7 +95,7 @@ function URLForm({ onClose }: { onClose: () => void }) {
 
   const onClickCopyWebhookURLButton = () => {
     onCopy();
-    toast({ title: "Webhook URL Copied", status: "success", position: "top" });
+    toast.add("Webhook URL Copied");
   };
 
   const onClickGenerateWebhookPathButton = () => {
