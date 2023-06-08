@@ -1,14 +1,10 @@
-import { useToast, Divider, IconButton, Code, Spinner } from "@chakra-ui/react";
-import Joi from "joi";
+import { Divider, IconButton, Code } from "@chakra-ui/react";
 import { useAtom } from "jotai";
 import { useState, ChangeEventHandler } from "react";
-import { FormProvider, useForm } from "react-hook-form";
-import { joiResolver } from "@hookform/resolvers/joi";
 import { isDarkModeAtom, isOpenUrlFormAtom, tokenAtom } from "./atoms";
 import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createRoute, getAllRoutes } from "./api/url";
-import { HTTPError } from "ky";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { getAllRoutes } from "./api/url";
 import { DateTime } from "luxon";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
@@ -19,7 +15,8 @@ import TextInput from "./components/base/TextInput";
 import { Dialog, Modal } from "./components/base/Modal";
 import { useOverlayTriggerState } from "react-stately";
 import URLForm from "./components/URLForm";
-import { RouteAPI, Target } from "common";
+import { RouteAPI, Target, Websockets } from "common";
+import { toastQueue as toast } from "./components/Toast";
 
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
 
@@ -171,7 +168,6 @@ function WebhookRoutes() {
 function App() {
   const [isOpenUrlForm, setIsOpenUrlFormModal] = useAtom(isOpenUrlFormAtom);
 
-  const toast = useToast();
   const qClient = useQueryClient();
 
   const [token, setToken] = useAtom(tokenAtom);
@@ -181,23 +177,17 @@ function App() {
     `${SOCKET_URL.toString()}?token=${token}`,
     {
       onMessage(event) {
-        const eventData = JSON.parse(event?.data) as SocketEvent.WebhookEvent;
+        const eventData = JSON.parse(event?.data) as Websockets.NewRouteEvent;
 
-        if (eventData?.type === "new-request") {
-          const key = ["event-stream", eventData?.path];
+        if (eventData?.type === "new-route-event") {
+          const key = ["event-stream", eventData?.routeId];
 
           qClient.setQueryData(key, (oldData: any) => {
             console.log("Updating...", oldData);
-            return [eventData, ...oldData];
+            return [eventData?.data, ...oldData];
           });
 
-          toast({
-            id: eventData?.streamId,
-            title: "New webhook event",
-            description: `Path: ${eventData?.path}`,
-            position: "bottom-left",
-            duration: 1000,
-          });
+          toast.add("New webhook event", { timeout: 3000 });
         }
       },
     }

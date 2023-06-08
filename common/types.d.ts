@@ -1,10 +1,11 @@
-import { Event } from "@prisma/client";
+import { Event, Route } from "@prisma/client";
 
 type Target = { value: string };
 
 export declare namespace Websockets {
   export interface NewRouteEvent {
     type: "new-route-event";
+    routeId: Route["id"];
     data: Event;
   }
 }

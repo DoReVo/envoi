@@ -63,4 +63,4 @@ export function GlobalToastRegion(props: any) {
     : null;
 }
 
-export const toastQueue = new ToastQueue({ maxVisibleToasts: 5 });
+export const toastQueue = new ToastQueue({ maxVisibleToasts: 10 });

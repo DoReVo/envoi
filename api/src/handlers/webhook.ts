@@ -56,6 +56,7 @@ export const WebhookHandler: RouteHandlerMethod = async (req, res) => {
   req.server.websocketServer.clients.forEach((c) => {
     const socketEvent: Websockets.NewRouteEvent = {
       type: "new-route-event",
+      routeId: routeData?.id,
       data: event,
     };
     c.send(JSON.stringify(socketEvent));
