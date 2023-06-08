@@ -10,7 +10,8 @@ export declare namespace Websockets {
 }
 
 export declare namespace RouteAPI {
-  export type { Route } from "@prisma/client";
+  export type { Route, Event } from "@prisma/client";
+
   export interface POSTBody {
     path: string;
     targets: Target[];

@@ -1,3 +1,4 @@
+import { RouteAPI } from "common";
 import { createKy } from "../hooks/createKy";
 
 const ky = createKy();
@@ -7,7 +8,5 @@ export async function getEvents(query: any) {
 
   const [_, id] = queryKey;
 
-  return await ky
-    .get(`api/route/${id}/event`)
-    .json<Form.Url.APIResponse.RouteEvents[]>();
+  return await ky.get(`api/route/${id}/event`).json<RouteAPI.Event[]>();
 }

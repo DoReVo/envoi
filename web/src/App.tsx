@@ -42,7 +42,7 @@ function UrlFormModal() {
   );
 }
 
-function WebhookEventCard(props: { event: Form.Url.APIResponse.RouteEvents }) {
+function WebhookEventCard(props: { event: RouteAPI.Event }) {
   const { event } = props;
   const [expanded, setExpanded] = useState(false);
 
@@ -54,16 +54,12 @@ function WebhookEventCard(props: { event: Form.Url.APIResponse.RouteEvents }) {
     <div className="bg-slate-100 p-2">
       <div className="flex justify-between items-center gap-x-2">
         <div className="px-2 py-1 text-center w-max rounded text-sm text-white bg-cyan-600">
-          {event?.data?.method}
+          {event?.method}
         </div>
 
-        <div className="grow text-sm">{event?.data?.reqId}</div>
+        <div className="grow text-sm">{event?.id}</div>
 
-        <div>
-          {DateTime.fromMillis(event?.data?.timestamp).toRelative(
-            DateTime.now()
-          )}
-        </div>
+        <div>{DateTime.fromISO(event?.timestamp as any).toRelative()}</div>
 
         <IconButton
           aria-label="Expand"
@@ -79,15 +75,15 @@ function WebhookEventCard(props: { event: Form.Url.APIResponse.RouteEvents }) {
         <>
           <div className="font-bold mt-4 mb-2">Request Headers</div>
           <Code className="whitespace-pre" bg={"gray.100"}>
-            {JSON.stringify(event?.data?.headers, null, 1)}
+            {JSON.stringify(event?.header, null, 1)}
           </Code>
           <div className="font-bold mt-4 mb-2">Request Query String</div>
           <Code className="whitespace-pre" bg={"gray.100"}>
-            {JSON.stringify(event?.data?.queryString, null, 1)}
+            {JSON.stringify(event?.queryString, null, 1)}
           </Code>
           <div className="font-bold mt-4 mb-2">Request Body</div>
           <Code className="whitespace-pre" bg={"gray.100"}>
-            {JSON.stringify(event?.data?.body, null, 1)}
+            {JSON.stringify(event?.body, null, 1)}
           </Code>
         </>
       ) : null}
@@ -106,13 +102,9 @@ function RouteCard(props: { route: RouteAPI.Route }) {
 
   // Get events
 
-  const { data, isLoading } = useQuery(
-    ["event-stream", route.id],
-    getEvents,
-    {
-      staleTime: 1000 * 60 * 1,
-    }
-  );
+  const { data, isLoading } = useQuery(["event-stream", route.id], getEvents, {
+    staleTime: 1000 * 60 * 1,
+  });
 
   return (
     <div className="p-2">
@@ -146,7 +138,7 @@ function RouteCard(props: { route: RouteAPI.Route }) {
           ) : (
             <div>
               {data?.map((entry) => (
-                <WebhookEventCard key={entry?.data?.reqId} event={entry} />
+                <WebhookEventCard key={entry?.id} event={entry} />
               ))}
             </div>
           )}
@@ -166,7 +158,7 @@ function WebhookRoutes() {
 
       <div className="flex flex-col gap-y-2 divide-y divide-slate-400">
         {data?.map?.((entry) => (
-          <RouteCard key={`${entry.url}-${entry.created}`} route={entry} />
+          <RouteCard key={entry?.id} route={entry} />
         ))}
       </div>
     </div>
