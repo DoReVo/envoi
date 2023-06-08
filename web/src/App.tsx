@@ -126,7 +126,10 @@ function RouteCard(props: { route: RouteAPI.Route }) {
           <div className="font-bold mb-2 text-lg">Forward Targets</div>
           <div className="flex flex-col gap-y-2">
             {(route["targets"] as Target[])?.map((entry) => (
-              <div className="rounded bg-teal-500 px-2 text-white w-max">
+              <div
+                key={entry?.value}
+                className="rounded bg-teal-500 px-2 text-white w-max"
+              >
                 {entry.value}
               </div>
             ))}
