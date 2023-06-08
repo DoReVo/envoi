@@ -1,6 +1,5 @@
-import { useClipboard } from "@chakra-ui/react";
 import { faker } from "@faker-js/faker";
-import { useEffect, KeyboardEventHandler, PropsWithChildren } from "react";
+import { KeyboardEventHandler, PropsWithChildren } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import BaseButton from "./base/Button";
 import { joiResolver } from "@hookform/resolvers/joi";
@@ -10,8 +9,9 @@ import { createRoute } from "../api/url";
 import { HTTPError } from "ky";
 import type { RouteAPI } from "common";
 import TextInput from "./base/TextInput";
-import { usePress } from "react-aria";
+import { useClipboard, usePress } from "react-aria";
 import { toastQueue as toast } from "./Toast";
+import { useCopyToClipboard } from "react-use";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
@@ -85,16 +85,12 @@ function URLForm({ onClose }: { onClose: () => void }) {
   const path = watch("path");
   const tags = watch("tags");
 
-  const { onCopy, setValue: setValueClipboard } = useClipboard("");
+  const [_, copyToClipboard] = useCopyToClipboard();
 
   const WEBHOOK_URL = `${API_URL.toString()}${path}`;
 
-  useEffect(() => {
-    setValueClipboard(WEBHOOK_URL);
-  }, [path]);
-
   const onClickCopyWebhookURLButton = () => {
-    onCopy();
+    copyToClipboard(WEBHOOK_URL);
     toast.add("Webhook URL Copied");
   };
 
