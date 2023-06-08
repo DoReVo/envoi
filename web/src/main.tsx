@@ -5,8 +5,11 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "virtual:uno.css";
+import "./index.css";
 
 const queryClient = new QueryClient();
+
+import { GlobalToastRegion } from "./components/Toast";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
@@ -14,6 +17,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <QueryClientProvider client={queryClient}>
         <App />
         <ReactQueryDevtools />
+        <GlobalToastRegion />
       </QueryClientProvider>
     </ChakraProvider>
   </React.StrictMode>
