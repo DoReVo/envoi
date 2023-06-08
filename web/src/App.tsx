@@ -1,8 +1,6 @@
-import { Divider, IconButton, Code } from "@chakra-ui/react";
 import { useAtom } from "jotai";
 import { useState, ChangeEventHandler } from "react";
 import { isDarkModeAtom, isOpenUrlFormAtom, tokenAtom } from "./atoms";
-import { ArrowDownIcon, ArrowUpIcon } from "@chakra-ui/icons";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllRoutes } from "./api/url";
 import { DateTime } from "luxon";
@@ -58,30 +56,29 @@ function WebhookEventCard(props: { event: RouteAPI.Event }) {
 
         <div>{DateTime.fromISO(event?.timestamp as any).toRelative()}</div>
 
-        <IconButton
-          aria-label="Expand"
-          icon={expanded ? <ArrowUpIcon /> : <ArrowDownIcon />}
-          colorScheme="green"
-          rounded="full"
-          onClick={onCardClick}
-          size="sm"
-        />
+        <BaseButton onPress={onCardClick}>
+          {expanded ? (
+            <div className="i-carbon-arrow-up" />
+          ) : (
+            <div className="i-carbon-arrow-down" />
+          )}
+        </BaseButton>
       </div>
 
       {expanded ? (
         <>
           <div className="font-bold mt-4 mb-2">Request Headers</div>
-          <Code className="whitespace-pre" bg={"gray.100"}>
+          <div className="whitespace-pre">
             {JSON.stringify(event?.header, null, 1)}
-          </Code>
+          </div>
           <div className="font-bold mt-4 mb-2">Request Query String</div>
-          <Code className="whitespace-pre" bg={"gray.100"}>
+          <div className="whitespace-pre">
             {JSON.stringify(event?.queryString, null, 1)}
-          </Code>
+          </div>
           <div className="font-bold mt-4 mb-2">Request Body</div>
-          <Code className="whitespace-pre" bg={"gray.100"}>
+          <div className="whitespace-pre">
             {JSON.stringify(event?.body, null, 1)}
-          </Code>
+          </div>
         </>
       ) : null}
     </div>
@@ -154,7 +151,6 @@ function WebhookRoutes() {
   return (
     <div className="mt-8 max-w-4xl mx-auto">
       <h1 className="text-left text-xl font-bold">Webhook Routes</h1>
-      <Divider />
 
       <div className="flex flex-col gap-y-2 divide-y divide-slate-400">
         {data?.map?.((entry) => (
