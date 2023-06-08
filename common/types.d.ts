@@ -1,5 +1,7 @@
 import { Event } from "@prisma/client";
 
+type Target = { value: string };
+
 export declare namespace Websockets {
   export interface NewRouteEvent {
     type: "new-route-event";
@@ -8,9 +10,10 @@ export declare namespace Websockets {
 }
 
 export declare namespace RouteAPI {
+  export type { Route } from "@prisma/client";
   export interface POSTBody {
     path: string;
-    targets: Targets[];
+    targets: Target[];
     tags?: string[];
   }
 }

@@ -19,6 +19,7 @@ import TextInput from "./components/base/TextInput";
 import { Dialog, Modal } from "./components/base/Modal";
 import { useOverlayTriggerState } from "react-stately";
 import URLForm from "./components/URLForm";
+import { RouteAPI, Target } from "common";
 
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
 
@@ -94,7 +95,7 @@ function WebhookEventCard(props: { event: Form.Url.APIResponse.RouteEvents }) {
   );
 }
 
-function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
+function RouteCard(props: { route: RouteAPI.Route }) {
   const { route } = props;
 
   const [expanded, setExpanded] = useState(false);
@@ -105,31 +106,34 @@ function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
 
   // Get events
 
-  const { data, isLoading } = useQuery(["event-stream", route.url], getEvents, {
-    staleTime: 1000 * 60 * 1,
-  });
+  const { data, isLoading } = useQuery(
+    ["event-stream", route.id],
+    getEvents,
+    {
+      staleTime: 1000 * 60 * 1,
+    }
+  );
 
   return (
     <div className="p-2">
       <div className="flex justify-between items-center">
         <div className="text-lg rounded bg-blue-500 px-2 text-white">
-          {route.url}
+          {route?.path}
         </div>
-        <IconButton
-          aria-label="Expand"
-          icon={expanded ? <ArrowUpIcon /> : <ArrowDownIcon />}
-          colorScheme="blue"
-          rounded="full"
-          onClick={onClickExpandBtn}
-          size="sm"
-        />
+        <BaseButton onPress={onClickExpandBtn}>
+          {expanded ? (
+            <div className="i-carbon-arrow-up" />
+          ) : (
+            <div className="i-carbon-arrow-down" />
+          )}
+        </BaseButton>
       </div>
 
       {expanded ? (
         <div className="mt-4">
           <div className="font-bold mb-2 text-lg">Forward Targets</div>
           <div className="flex flex-col gap-y-2">
-            {route.targets.map((entry) => (
+            {(route["targets"] as Target[])?.map((entry) => (
               <div className="rounded bg-teal-500 px-2 text-white w-max">
                 {entry.value}
               </div>
@@ -138,9 +142,7 @@ function RouteCard(props: { route: Form.Url.APIResponse.Data }) {
 
           <div className="font-bold mt-4 text-lg">Events</div>
           {isLoading ? (
-            <div className="flex justify-center items-center">
-              <Spinner color="blue" />
-            </div>
+            <div className="flex justify-center items-center">...Loading</div>
           ) : (
             <div>
               {data?.map((entry) => (

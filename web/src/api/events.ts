@@ -5,13 +5,9 @@ const ky = createKy();
 export async function getEvents(query: any) {
   const { queryKey } = query;
 
-  const [_, path] = queryKey;
-
-  console.log("Path given", path);
+  const [_, id] = queryKey;
 
   return await ky
-    .get("api/route/events", {
-      searchParams: { path },
-    })
+    .get(`api/route/${id}/event`)
     .json<Form.Url.APIResponse.RouteEvents[]>();
 }
