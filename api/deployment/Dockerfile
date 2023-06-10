@@ -3,12 +3,13 @@ FROM node:16-alpine as builder
 WORKDIR /home/node/app
 # Copy over package.json files
 # COPY ../package*.json .
-COPY ../package.json .
-COPY ../package-lock.json .
+COPY ./package.json .
+COPY ./package-lock.json .
+
 # Install all packages
 RUN npm install
 # Copy over source code
-COPY ../ .
+COPY ./ .
 
 RUN npm run build
 
@@ -20,9 +21,12 @@ ENV PORT=6000
 WORKDIR /home/node/app
 # Copy over built files
 COPY --from=builder /home/node/app/dist .
+
+COPY ./script ./script
+COPY ./prisma ./prisma
 # Install only required packages
 RUN npm install --omit=dev
 # Expose port to outside world
 EXPOSE 6000
 # Start server up
-CMD [ "node", "server.js" ]
+CMD [ "npm", "run" ,"start-docker"]
