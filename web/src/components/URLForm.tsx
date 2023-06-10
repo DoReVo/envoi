@@ -176,7 +176,7 @@ function URLForm({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
+    <form onSubmit={handleSubmit(onSubmit)} className="">
       <DevTool control={control} />
       <label>Webhook URL</label>
       <TextInput {...register("path")} />

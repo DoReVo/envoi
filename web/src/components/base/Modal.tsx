@@ -3,6 +3,9 @@ import type { AriaModalOverlayProps } from "@react-aria/overlays";
 import { Overlay, useModalOverlay } from "@react-aria/overlays";
 import { OverlayTriggerState } from "react-stately";
 import { AriaDialogProps, useDialog } from "react-aria";
+import { isDarkModeAtom } from "../../atoms";
+import cls from "classnames";
+import { useAtom } from "jotai";
 
 interface ModalProps extends AriaModalOverlayProps {
   children: React.ReactNode;
@@ -11,6 +14,7 @@ interface ModalProps extends AriaModalOverlayProps {
 
 export function Modal(props: ModalProps) {
   let { children, state } = props;
+  const [isDarkMode, _] = useAtom(isDarkModeAtom);
 
   let ref = React.useRef(null);
   let { modalProps, underlayProps } = useModalOverlay(props, state, ref);
@@ -30,7 +34,10 @@ export function Modal(props: ModalProps) {
         <div
           {...modalProps}
           ref={ref}
-          className="p-4 bg-canvas dark:bg-canvas-dark shadow-2xl2 rounded z-1 h-fit relative focus:outline-none"
+          className={cls(
+            "shadow-2xl2 z-1 h-fit relative focus:outline-none",
+            { dark: isDarkMode }
+          )}
         >
           {children}
         </div>
@@ -60,12 +67,12 @@ export function Dialog(props: DialogProps) {
     <div
       {...dialogProps}
       ref={ref}
-      className="outline-none text-left font-mono"
+      className="outline-none text-left font-mono dark:bg-canvas-dark dark:text-white p-4 rounded bg-canvas"
     >
       <h3 {...titleProps} className="text-lg font-bold">
         {props.title}
       </h3>
-      {children}
+      <div>{children}</div>
     </div>
   );
 }
