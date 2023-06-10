@@ -1,13 +1,14 @@
 import { useAtom } from "jotai";
 import { useState, ChangeEventHandler } from "react";
 import {
+  routeDeleteModalDataAtom,
   isDarkModeAtom,
   isEditingRouteIDAtom,
   isOpenUrlFormAtom,
   tokenAtom,
 } from "./atoms";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllRoutes } from "./api/url";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteRoute, getAllRoutes } from "./api/url";
 import { DateTime } from "luxon";
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket";
 import { ReadyState } from "react-use-websocket";
@@ -20,6 +21,7 @@ import { useOverlayTriggerState } from "react-stately";
 import URLForm from "./components/URLForm";
 import { RouteAPI, Target, Websockets } from "common";
 import { toastQueue as toast } from "./components/Toast";
+import { HTTPError } from "ky";
 
 const SOCKET_URL = new URL(import.meta.env.VITE_SOCKET_URL);
 
@@ -35,7 +37,7 @@ function UrlFormModal() {
 
   return (
     <Modal state={state}>
-      <Dialog title="Add New URL">
+      <Dialog title="Add New URL" className="p-8">
         <URLForm onClose={onClose} />
       </Dialog>
     </Modal>
@@ -93,6 +95,7 @@ function WebhookEventCard(props: { event: RouteAPI.Event }) {
 function RouteCard(props: { route: RouteAPI.Route }) {
   const [, setIsEditingID] = useAtom(isEditingRouteIDAtom);
   const [, setIsOpenUrlForm] = useAtom(isOpenUrlFormAtom);
+  const [modalData, setModalData] = useAtom(routeDeleteModalDataAtom);
   const { route } = props;
 
   const [expanded, setExpanded] = useState(false);
@@ -104,6 +107,10 @@ function RouteCard(props: { route: RouteAPI.Route }) {
   const onClickEditBtn = () => {
     setIsEditingID(route?.id);
     setIsOpenUrlForm(true);
+  };
+
+  const onClickDeleteBtn = () => {
+    setModalData({ isOpen: true, data: { id: route?.id } });
   };
 
   // Get events
@@ -119,6 +126,7 @@ function RouteCard(props: { route: RouteAPI.Route }) {
           {route?.path}
         </div>
         <div className="flex gap-x-2">
+          <BaseButton onPress={onClickDeleteBtn}>Delete</BaseButton>
           <BaseButton onPress={onClickEditBtn}>Edit</BaseButton>
           <BaseButton onPress={onClickExpandBtn}>
             {expanded ? (
@@ -160,11 +168,65 @@ function RouteCard(props: { route: RouteAPI.Route }) {
   );
 }
 
+function ConfirmDeleteModal() {
+  const [data, setData] = useAtom(routeDeleteModalDataAtom);
+  const state = useOverlayTriggerState({ isOpen: data?.isOpen });
+
+  const qClient = useQueryClient();
+
+  const deleteRouteMUT = useMutation(deleteRoute, {
+    onSuccess: () => {
+      qClient.invalidateQueries(["all-routes"]);
+      qClient.removeQueries(["route", data?.data?.id]);
+      resetData();
+      toast.add("Webhook deleted", { timeout: 2000 });
+    },
+    onError: async (res) => {
+      if (res instanceof HTTPError) {
+        try {
+          const err = await res?.response?.json();
+          if (err?.error?.message) toast.add(err?.error?.message);
+          else throw new Error("Unkown error");
+        } catch (error) {
+          toast.add("Unexpected Error", { timeout: 2000 });
+        }
+      }
+    },
+  });
+
+  const onClickConfirm = () => {
+    deleteRouteMUT.mutate(data?.data?.id);
+  };
+
+  const onClickCancel = () => {
+    resetData();
+  };
+
+  function resetData() {
+    setData({ isOpen: false, data: { id: "" } });
+  }
+
+  return (
+    <Modal state={state}>
+      <Dialog title="Delete Route" className="px-8 py-12 rounded-lg min-w-sm">
+        <div>Route will be deleted</div>
+        <div className="mt-8 flex gap-x-2 flex-row-reverse">
+          <BaseButton className="bg-red-500" onPress={onClickConfirm}>
+            Confirm
+          </BaseButton>
+          <BaseButton onPress={onClickCancel}>Cancel</BaseButton>
+        </div>
+      </Dialog>
+    </Modal>
+  );
+}
+
 function WebhookRoutes() {
   const { data, isLoading } = useQuery(["all-routes"], getAllRoutes);
 
   return (
     <div className="mt-8 max-w-4xl mx-auto">
+      <ConfirmDeleteModal />
       <h1 className="text-left text-xl font-bold">Webhook Routes</h1>
 
       <div className="flex flex-col gap-y-2 divide-y divide-slate-400">

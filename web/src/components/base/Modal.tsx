@@ -6,6 +6,7 @@ import { AriaDialogProps, useDialog } from "react-aria";
 import { isDarkModeAtom } from "../../atoms";
 import cls from "classnames";
 import { useAtom } from "jotai";
+import { isEmpty } from "lodash-es";
 
 interface ModalProps extends AriaModalOverlayProps {
   children: React.ReactNode;
@@ -35,8 +36,10 @@ export function Modal(props: ModalProps) {
           {...modalProps}
           ref={ref}
           className={cls(
-            "shadow-2xl2 z-1 h-fit relative focus:outline-none",
-            { dark: isDarkMode }
+            "shadow-2xl2 z-1 h-fit relative focus:outline-none font-mono",
+            {
+              dark: isDarkMode,
+            }
           )}
         >
           {children}
@@ -47,12 +50,13 @@ export function Modal(props: ModalProps) {
 }
 
 interface DialogProps extends AriaDialogProps {
+  className?: string;
   children: React.ReactNode;
   title: string;
 }
 
 export function Dialog(props: DialogProps) {
-  let { children } = props;
+  let { children, className } = props;
 
   let ref = React.useRef(null);
   let { dialogProps, titleProps } = useDialog(
@@ -67,9 +71,14 @@ export function Dialog(props: DialogProps) {
     <div
       {...dialogProps}
       ref={ref}
-      className="outline-none text-left font-mono dark:bg-canvas-dark dark:text-white p-4 rounded bg-canvas"
+      className={cls(
+        "outline-none dark:bg-canvas-dark dark:text-white rounded bg-canvas",
+        {
+          [`${className}`]: !isEmpty(className),
+        }
+      )}
     >
-      <h3 {...titleProps} className="text-lg font-bold">
+      <h3 {...titleProps} className="text-lg font-bold text-left">
         {props.title}
       </h3>
       <div>{children}</div>

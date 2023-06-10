@@ -9,3 +9,10 @@ export const isDarkModeAtom = atomWithStorage("darkMode", false);
 
 /** The ID of a Route being edited */
 export const isEditingRouteIDAtom = atom<string | null>(null);
+
+export const routeDeleteModalDataAtom = atom({
+  isOpen: false,
+  data: {
+    id: "",
+  },
+});

@@ -19,6 +19,10 @@ export async function editRoute(id: string, data: RouteAPI.POSTBody) {
     .json();
 }
 
+export async function deleteRoute(id: string) {
+  return await ky.delete(`api/route/${id}`).json();
+}
+
 export async function getSingleRoute(id: string) {
   return await ky.get(`api/route/${id}`).json<RouteAPI.Route>();
 }
