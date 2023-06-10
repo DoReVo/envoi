@@ -34,6 +34,7 @@
     "@types/lodash-es": "^4.17.7",
     "ajv": "^8.12.0",
     "bullmq": "^3.13.4",
+    "common": "file:../common",
     "dotenv": "^16.1.4",
     "fast-glob": "^3.2.12",
     "fastify": "^4.17.0",
