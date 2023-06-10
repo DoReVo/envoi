@@ -3,12 +3,24 @@ import { createKy } from "../hooks/createKy";
 
 const ky = createKy();
 
-export async function createRoute(data: Form.Url.Data) {
+export async function createRoute(data: RouteAPI.POSTBody) {
   return await ky
     .post("api/route", {
       json: data,
     })
     .json();
+}
+
+export async function editRoute(id: string, data: RouteAPI.POSTBody) {
+  return await ky
+    .patch(`api/route/${id}`, {
+      json: data,
+    })
+    .json();
+}
+
+export async function getSingleRoute(id: string) {
+  return await ky.get(`api/route/${id}`).json<RouteAPI.Route>();
 }
 
 export async function getAllRoutes() {

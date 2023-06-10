@@ -23,11 +23,34 @@ const routes: FastifyPluginCallback = async (app, _opts) => {
       },
     },
     async () => {
-      const routes = await prisma.route.findMany();
+      const routes = await prisma.route.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
 
       return routes;
     }
   );
+
+  app.get<{ Params: { id: string } }>(
+    "/route/:id",
+    {
+      schema: {
+        headers: AUTH_HEADER_SCHEMA,
+      },
+    },
+    async (req) => {
+      const route = await prisma.route.findFirst({
+        where: {
+          id: req.params.id,
+        },
+      });
+
+      return route;
+    }
+  );
+
   app.post<{ Body: PostRouteBody }>(
     "/route",
     {

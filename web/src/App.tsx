@@ -1,6 +1,11 @@
 import { useAtom } from "jotai";
 import { useState, ChangeEventHandler } from "react";
-import { isDarkModeAtom, isOpenUrlFormAtom, tokenAtom } from "./atoms";
+import {
+  isDarkModeAtom,
+  isEditingRouteIDAtom,
+  isOpenUrlFormAtom,
+  tokenAtom,
+} from "./atoms";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllRoutes } from "./api/url";
 import { DateTime } from "luxon";
@@ -86,12 +91,19 @@ function WebhookEventCard(props: { event: RouteAPI.Event }) {
 }
 
 function RouteCard(props: { route: RouteAPI.Route }) {
+  const [, setIsEditingID] = useAtom(isEditingRouteIDAtom);
+  const [, setIsOpenUrlForm] = useAtom(isOpenUrlFormAtom);
   const { route } = props;
 
   const [expanded, setExpanded] = useState(false);
 
   const onClickExpandBtn = () => {
     setExpanded(!expanded);
+  };
+
+  const onClickEditBtn = () => {
+    setIsEditingID(route?.id);
+    setIsOpenUrlForm(true);
   };
 
   // Get events
@@ -106,13 +118,16 @@ function RouteCard(props: { route: RouteAPI.Route }) {
         <div className="text-lg rounded bg-blue-500 px-2 text-white">
           {route?.path}
         </div>
-        <BaseButton onPress={onClickExpandBtn}>
-          {expanded ? (
-            <div className="i-carbon-arrow-up" />
-          ) : (
-            <div className="i-carbon-arrow-down" />
-          )}
-        </BaseButton>
+        <div className="flex gap-x-2">
+          <BaseButton onPress={onClickEditBtn}>Edit</BaseButton>
+          <BaseButton onPress={onClickExpandBtn}>
+            {expanded ? (
+              <div className="i-carbon-arrow-up" />
+            ) : (
+              <div className="i-carbon-arrow-down" />
+            )}
+          </BaseButton>
+        </div>
       </div>
 
       {expanded ? (

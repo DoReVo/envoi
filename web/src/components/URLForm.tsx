@@ -4,19 +4,23 @@ import { useFieldArray, useForm } from "react-hook-form";
 import BaseButton from "./base/Button";
 import { joiResolver } from "@hookform/resolvers/joi";
 import Joi from "joi";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createRoute } from "../api/url";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createRoute, editRoute, getSingleRoute } from "../api/url";
 import { HTTPError } from "ky";
 import type { RouteAPI } from "common";
 import TextInput from "./base/TextInput";
 import { usePress } from "react-aria";
 import { toastQueue as toast } from "./Toast";
 import { useCopyToClipboard } from "react-use";
+import { isEditingRouteIDAtom } from "../atoms";
+import { useAtom } from "jotai";
+import { DevTool } from "@hookform/devtools";
+import { isArray } from "lodash-es";
 
 const API_URL = new URL(import.meta.env.VITE_API_URL);
 
 const URL_FORM_SCHEMA = Joi.object({
-  path: Joi.string().uri({ relativeOnly: true }).required(),
+  path: Joi.string().required(),
   targets: Joi.array()
     .items(
       Joi.object({
@@ -25,7 +29,7 @@ const URL_FORM_SCHEMA = Joi.object({
     )
     .min(1)
     .required(),
-  tags: Joi.array().items(Joi.string()),
+  tags: Joi.array().items(Joi.string()).empty(null),
 }).required();
 
 function FormTag(props: PropsWithChildren<{ pressCB: () => void }>) {
@@ -39,6 +43,19 @@ function FormTag(props: PropsWithChildren<{ pressCB: () => void }>) {
 }
 
 function URLForm({ onClose }: { onClose: () => void }) {
+  const [isEditingID, setIsEditingID] = useAtom(isEditingRouteIDAtom);
+
+  const { data: routeData, isLoading: isLoadingRouteData } = useQuery(
+    ["route", isEditingID],
+    async () => isEditingID !== null && (await getSingleRoute(isEditingID)),
+    {
+      enabled: !!isEditingID,
+      refetchOnMount: "always",
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    }
+  );
+
   const {
     control,
     handleSubmit,
@@ -48,12 +65,11 @@ function URLForm({ onClose }: { onClose: () => void }) {
     setValue,
     getValues,
   } = useForm<RouteAPI.POSTBody>({
-    resolver: joiResolver(URL_FORM_SCHEMA, { abortEarly: false }),
-    defaultValues: {
-      path: "",
-      targets: [],
-      tags: [],
-    },
+    resolver: joiResolver(URL_FORM_SCHEMA, {
+      abortEarly: false,
+      stripUnknown: true,
+    }),
+    values: routeData as any,
   });
 
   const qClient = useQueryClient();
@@ -61,8 +77,10 @@ function URLForm({ onClose }: { onClose: () => void }) {
   const createRouteMUT = useMutation(createRoute, {
     onSuccess: () => {
       qClient.invalidateQueries(["all-routes"]);
-      onClose();
-      toast.add("Webhook created");
+      closeForm();
+      toast.add("Webhook created", {
+        timeout: 2000,
+      });
     },
     onError: async (res) => {
       if (res instanceof HTTPError) {
@@ -76,6 +94,30 @@ function URLForm({ onClose }: { onClose: () => void }) {
       }
     },
   });
+
+  const editRouteMUT = useMutation(
+    async (data: RouteAPI.POSTBody) =>
+      isEditingID && (await editRoute(isEditingID, data)),
+    {
+      onSuccess: () => {
+        qClient.invalidateQueries(["all-routes"]);
+        qClient.invalidateQueries(["route", isEditingID]);
+        closeForm();
+        toast.add("Webhook edited", { timeout: 2000 });
+      },
+      onError: async (res) => {
+        if (res instanceof HTTPError) {
+          try {
+            const err = await res?.response?.json();
+            if (err?.error?.message) toast.add(err?.error?.message);
+            else throw new Error("Unkown error");
+          } catch (error) {
+            toast.add("Unexpected Error");
+          }
+        }
+      },
+    }
+  );
 
   const { append, fields, remove } = useFieldArray<RouteAPI.POSTBody>({
     name: "targets",
@@ -107,11 +149,12 @@ function URLForm({ onClose }: { onClose: () => void }) {
   };
 
   const onKeyDownTagInput: KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === "Enter" && e?.currentTarget?.value?.trim() !== "" && tags) {
-      setValue("tags", [...tags, e?.currentTarget?.value]);
+    if (e.key === "Enter" && e?.currentTarget?.value?.trim() !== "") {
+      if (!isArray(tags)) setValue("tags", [e?.currentTarget?.value]);
+      else setValue("tags", [...tags, e?.currentTarget?.value]);
 
-      e.currentTarget.value = "";
       e.preventDefault();
+      e.currentTarget.value = "";
     }
   };
 
@@ -123,11 +166,18 @@ function URLForm({ onClose }: { onClose: () => void }) {
   };
 
   function onSubmit(data: any) {
-    createRouteMUT.mutate(data);
+    if (!isEditingID) createRouteMUT.mutate(data);
+    else editRouteMUT.mutate(data);
+  }
+
+  function closeForm() {
+    setIsEditingID(null);
+    onClose();
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
+      <DevTool control={control} />
       <label>Webhook URL</label>
       <TextInput {...register("path")} />
       <span className="text-red-400">{errors?.path?.message}</span>
@@ -172,11 +222,12 @@ function URLForm({ onClose }: { onClose: () => void }) {
       <div className="mt-4 flex justify-start">
         <BaseButton onPress={addTarget}>Add Target</BaseButton>
       </div>
+
       <div className="flex gap-x-2 mt-2 flex-row-reverse">
         <BaseButton className="grow" type="submit">
           Save
         </BaseButton>
-        <BaseButton className="grow" xType="danger" onPress={onClose}>
+        <BaseButton className="grow" xType="danger" onPress={closeForm}>
           Cancel
         </BaseButton>
       </div>
