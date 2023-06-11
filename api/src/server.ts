@@ -62,9 +62,13 @@ await app.register(fastifyCors, {
   origin: "*",
 });
 
+const redisUrl = new URL(app.env.REDIS_URL);
+
 /* redis plugin */
 await app.register(fastifyRedis, {
   url: app.env.REDIS_URL,
+  username: redisUrl?.username,
+  password: redisUrl?.password,
   keyPrefix: "envoi:",
 });
 
