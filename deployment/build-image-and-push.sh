@@ -15,3 +15,5 @@ docker login $REGISTRY
 docker build --file $SCRIPT_DIR/Dockerfile --tag $IMAGE_NAME $CONTEXT
 
 docker push $IMAGE_NAME
+
+echo "Image Pushed"
